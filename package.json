@@ -1,0 +1,21 @@
+{
+  "name": "topby_sub_v5",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production PORT=3080 pm2 start server.js -i 0 --name topby_sub_new",
+    "dev": "nodemon server"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  },
+  "dependencies": {
+    "cross-env": "^10.1.0",
+    "express": "^5.2.1",
+    "pm2": "^6.0.14"
+  }
+}

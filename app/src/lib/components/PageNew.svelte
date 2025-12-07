@@ -1,0 +1,846 @@
+<script>
+    import { onMount, tick } from "svelte";
+    import { browser } from "$app/environment";
+    import { back_api, back_api_origin, gcs_img } from "$lib/const";
+
+    import {
+        validatePhoneNumber,
+        convertPrivacyTextToHtml,
+        setImg,
+    } from "$lib/lib";
+
+    import Modal from "$lib/components/Modal.svelte";
+
+    import DateInput from "$lib/components/form-list/DateInput.svelte";
+    import DateTimeInput from "$lib/components/form-list/DateTimeInput.svelte";
+    import MemoInput from "$lib/components/form-list/MemoInput.svelte";
+    import NameInput from "$lib/components/form-list/NameInput.svelte";
+    import PhoneInput from "$lib/components/form-list/PhoneInput.svelte";
+    import PreForm from "$lib/components/PreForm.svelte";
+
+    import moment from "moment-timezone";
+    import axios from "axios";
+
+    let { siteData } = $props();
+
+    let mainContents = $state([]);
+    let standbyContentList = $state([]);
+    let x = $state(0);
+    let y = $state(0);
+    let eventEle = $state();
+
+    let observer;
+    let elementsToObserve;
+
+    let backgroundList = $state([]);
+    let contentList = $state([]);
+
+    let loading = $state(true);
+    let hasSectionFormList = $state([]);
+
+    let eventEleForm = $state([]);
+
+    // 구, 신버전 공통
+    let customerName = $state("");
+    let customerPhone = $state("");
+
+    let phone1 = $state("010");
+    let phone2 = $state("");
+    let phone3 = $state("");
+    let memos = $state([]);
+    let formDate = $state(moment().format("YYYY-MM-DD"));
+    let formTime = $state("base");
+    let inviteChk = $state(false);
+    let modalOpen = $state(false);
+
+    onMount(async () => {
+        if (siteData.ld_json_main) {
+            mainContents = JSON.parse(siteData.ld_json_main);
+
+            /*
+
+            백그라운드 이미지가 전부 페이지에 로드 된 다음에 ratio 실행을 위해서 (그래야 정상적으로 돌아감)
+            mainContents 의 백그라운드 이미지들을 전부 로드하기 위해
+            standbyContentList 배열에 담은 뒤
+            loadBackgroundImage 함수로 이미지 로드 확인하기
+
+            */
+            for (let i = 0; i < mainContents.length; i++) {
+                const con = mainContents[i];
+                const bgImg = con.backgroundImg;
+
+                if (bgImg) {
+                    if (bgImg.includes("http")) {
+                        standbyContentList.push(bgImg);
+                    } else if (bgImg.includes("subimg")) {
+                        standbyContentList.push(`${back_api_origin}${bgImg}`);
+                    } else {
+                        standbyContentList.push(`${gcs_img}/${bgImg}`);
+                    }
+                }
+            }
+
+            await Promise.all(
+                standbyContentList.map((url) => loadBackgroundImage(url)),
+            );
+
+            loading = false;
+        }
+
+        // setSectionHeight();
+        // setYoutubeRatio();
+
+        elementsToObserve = document.querySelectorAll(".observe-fade-up");
+
+        observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove("observe-hidden");
+                    entry.target.classList.add("fade-up-active");
+                } else {
+                    entry.target.classList.remove("fade-up-active");
+                    entry.target.classList.add("observe-hidden");
+                }
+            });
+        });
+
+        elementsToObserve.forEach((element) => {
+            // 초기 숨김 클래스 추가
+            element.classList.add("observe-hidden");
+            observer.observe(element);
+
+            // data-delay 속성이 있는 경우 CSS 변수로 전달
+            const delay = element.dataset.delay;
+            if (delay) {
+                element.style.setProperty("--fade-up-delay", `${delay}ms`);
+            }
+        });
+
+        console.log(mainContents);
+
+        hasSectionFormList = mainContents
+            .flatMap((item) => item.contentList)
+            .flatMap((con) => con.formList ?? [])
+            .map((f) => ({ type: f.type, word: f.word, require: f.require }));
+    });
+
+    $effect(() => {});
+
+    // 유튜브 섹션의 높이 비율 맞추기
+    async function setYoutubeRatio() {
+        if (browser) {
+            await tick();
+            const youtubeContents =
+                document.querySelectorAll(".youtube-iframe");
+
+            for (let i = 0; i < youtubeContents.length; i++) {
+                youtubeContents[i].style.width = "90%";
+                const elementWidth = youtubeContents[i].offsetWidth;
+                youtubeContents[i].style.height = `${elementWidth / 1.7778}px`;
+            }
+        }
+    }
+
+    function loadBackgroundImage(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = url;
+        });
+    }
+
+    function getRatio(data) {
+        if (!data.bgType || data.bgType == "height") {
+            return 0;
+        } else {
+            let ratio = 0;
+            ratio = data.backgroundWidth / data.backgroundHeight;
+            return ratio;
+        }
+    }
+
+    function moveForm() {
+        if (browser) {
+            let y;
+            if (hasSectionFormList.length > 0) {
+                const resultEle = eventEleForm.filter(Boolean).at(-1);
+                y =
+                    resultEle.getBoundingClientRect().top +
+                    window.pageYOffset -
+                    150;
+            } else {
+                y =
+                    eventEle.getBoundingClientRect().top +
+                    window.pageYOffset -
+                    150;
+            }
+            window.scrollTo({ top: y, behavior: "smooth" });
+        }
+    }
+
+    async function formUpdate(e) {
+        e.preventDefault();
+        console.log(siteData);
+
+        const siteName = siteData.ld_site;
+
+        console.log(siteName);
+
+        let formVal = {};
+
+        // 구버전 폼 검사
+        if (hasSectionFormList.length == 0) {
+            if (!customerName) {
+                alert("성함을 입력 해주세요.");
+                return;
+            }
+
+            if (!customerPhone) {
+                alert("전화번호를 입력 해주세요.");
+                return;
+            }
+
+            formVal = {
+                siteName: siteName,
+                name: customerName,
+                phone: customerPhone,
+            };
+        } else {
+            customerPhone = phone1 + phone2 + phone3;
+
+            const nameRequireChk = findFormByType(hasSectionFormList, "name");
+
+            if (nameRequireChk && nameRequireChk.require == true) {
+                if (!customerName) {
+                    alert("성함을 입력 해주세요.");
+                    return;
+                }
+            }
+
+            const phoneRequireChk = findFormByType(hasSectionFormList, "phone");
+
+            if (phoneRequireChk.require) {
+                if (!customerPhone || customerPhone == "010") {
+                    alert("전화번호를 입력 해주세요.");
+                    return;
+                }
+            }
+
+            const dateRequireChk = findFormByType(hasSectionFormList, "date");
+
+            if (dateRequireChk && dateRequireChk.require) {
+                if (!formDate) {
+                    alert("날짜를 입력 해 주세요.");
+                    return;
+                }
+            }
+
+            const dateTimeRequireChk = findFormByType(
+                hasSectionFormList,
+                "datetime",
+            );
+
+            if (dateTimeRequireChk && dateTimeRequireChk.require) {
+                if (!formDate || formTime == "base") {
+                    alert("날짜 및 시간을 입력 해 주세요.");
+                    return;
+                }
+            }
+
+            console.log(hasSectionFormList);
+
+            const memoFormArr = hasSectionFormList.filter(
+                (item) => item.type === "memo",
+            );
+            const memoValArr = memos.filter(Boolean);
+
+            for (let i = 0; i < memoFormArr.length; i++) {
+                const memoForm = memoFormArr[i];
+                const memoVal = memoValArr[i];
+                if (memoForm.require) {
+                    if (!memoVal) {
+                        alert("필수 메모 항목을 입력 해 주세요!");
+                        return;
+                    }
+                }
+            }
+
+            formVal = {
+                siteName: siteName,
+                name: customerName,
+                phone: customerPhone,
+                date: formDate,
+                time: formTime,
+            };
+
+            console.log(memoValArr);
+            console.log(memoFormArr);
+
+            for (let i = 0; i < memoValArr.length; i++) {
+                const memo = memoValArr[i];
+                console.log(memo);
+                const num = i + 1;
+                formVal[`memo_${num}_question`] = memoFormArr[i].word;
+                formVal[`memo_${num}_answer`] = memo;
+            }
+        }
+
+        if (!inviteChk && siteData.ld_personal_info_view == "on") {
+            alert("개인정보 보호동의에 체크해주셔야 합니다.");
+            return;
+        }
+
+        if (!validatePhoneNumber(customerPhone)) {
+            alert("정상적인 휴대폰 번호만 가능합니다.");
+            return false;
+        }
+
+        console.log("여기까지 정상 통과!!!");
+
+        try {
+            const res = await axios.post(
+                `${back_api}/update_customer`,
+                formVal,
+            );
+
+            if (res.status == 200) {
+                customerName = "";
+                customerPhone = "";
+                phone1 = "010";
+                phone2 = "";
+                phone3 = "";
+                memos = [];
+                formDate = moment().format("YYYY-MM-DD");
+                formTime = "base";
+                inviteChk = false;
+            }
+
+            window.location.href = "/thankyou?return=true";
+        } catch (error) {
+            console.error(error.message);
+
+            alert("에러가 발생했습니다. 관리자에게 문의해주세요");
+        }
+
+        // if (resSend) {
+        //     customerName = "";
+        //     customerPhone = "";
+        //     inviteChk = false;
+        // }
+    }
+
+    function findFormByType(arr, type) {
+        return arr.find((item) => item.type === type) || false;
+    }
+</script>
+
+<svelte:window bind:innerWidth={x} bind:scrollY={y} />
+
+<Modal
+    bind:isOpen={modalOpen}
+    showCloseButton={true}
+    title="개인정보 보호동의 전문"
+>
+    <div>
+        {@html convertPrivacyTextToHtml(siteData.ld_consent_info)}
+    </div>
+
+    <div class="text-right">
+        <button
+            class="btn btn-soft btn-error"
+            onclick={() => {
+                inviteChk = true;
+                modalOpen = false;
+            }}
+        >
+            닫기
+        </button>
+    </div>
+</Modal>
+
+<!-- <a href="/tel" data-sveltekit-reload> gogogo </a> -->
+
+<div class="mb-5 {siteData.ld_font ? siteData.ld_font : 'pretendard'}">
+    {#each mainContents as mainContent, idx}
+        <div
+            class="bg-box"
+            bind:this={backgroundList[idx]}
+            style="background-image: url({setImg(
+                mainContent['backgroundImg'],
+            )}); aspect-ratio: {getRatio(mainContent)};"
+        >
+            {#each mainContent.contentList as content, idx}
+                {#if content.text}
+                    <div
+                        class="px-3"
+                        class:observe-hidden={content.effect == "on"}
+                        class:observe-fade-up={content.effect == "on"}
+                        data-delay={content.delay}
+                        style="text-align : {content.align}; color :{content.fontColor};  font-size : {content.fontSize}px; white-space: pre-line;"
+                    >
+                        {content.text}
+                    </div>
+                {:else if content.imgPath}
+                    {#if content.imgPath}
+                        <div
+                            class="flex"
+                            class:justify-center={content.align == "center"}
+                            class:justify-start={content.align == "left"}
+                            class:justify-end={content.align == "right"}
+                            class:observe-hidden={content.effect == "on"}
+                            class:observe-fade-up={content.effect == "on"}
+                            data-delay={content.delay}
+                        >
+                            <div style="width:{content.width}%;">
+                                <img
+                                    src={setImg(content.imgPath)}
+                                    alt=""
+                                    class="w-full"
+                                />
+                            </div>
+                        </div>
+                    {/if}
+                {:else if content.imgList}
+                    {#each content.imgList as img}
+                        {#if img.link}
+                            <a
+                                href={img.link}
+                                data-sveltekit-reload
+                                rel="noopener noreferrer"
+                            >
+                                <div
+                                    class="flex"
+                                    class:justify-center={content.align ==
+                                        "center"}
+                                    class:justify-start={content.align ==
+                                        "left"}
+                                    class:justify-end={content.align == "right"}
+                                    class:observe-hidden={content.effect ==
+                                        "on"}
+                                    class:observe-fade-up={content.effect ==
+                                        "on"}
+                                    data-delay={content.delay}
+                                >
+                                    <div
+                                        class="mx-auto"
+                                        style="width:{content.width}%;"
+                                    >
+                                        <img
+                                            src={setImg(img.url)}
+                                            alt=""
+                                            class="w-full"
+                                        />
+                                    </div>
+                                </div>
+                            </a>
+                        {:else}
+                            <div
+                                class="flex"
+                                class:justify-center={content.align == "center"}
+                                class:justify-start={content.align == "left"}
+                                class:justify-end={content.align == "right"}
+                                class:observe-hidden={content.effect == "on"}
+                                class:observe-fade-up={content.effect == "on"}
+                                data-delay={content.delay}
+                            >
+                                <div
+                                    class="mx-auto"
+                                    style="width:{content.width}%;"
+                                >
+                                    <img
+                                        src={setImg(img.url)}
+                                        alt=""
+                                        class="w-full"
+                                    />
+                                </div>
+                            </div>
+                        {/if}
+                    {/each}
+                {:else if content.formList}
+                    <div
+                        class="gap-1 md:flex md:justify-center md:items-center"
+                    >
+                        <!-- 문자 고정 이미지 -->
+                        {#if content.formInviteImg}
+                            <div
+                                class="w-full md:w-1/2"
+                                bind:this={eventEleForm[idx]}
+                            >
+                                <a href="/sms" data-sveltekit-reload>
+                                    <img
+                                        src={setImg(content.formInviteImg)}
+                                        alt=""
+                                    />
+                                </a>
+                            </div>
+                        {/if}
+
+                        <div
+                            class="border border-gray-400 mt-7 md:mt-0 w-full md:w-1/2 mx-auto rounded-lg p-5"
+                        >
+                            <div class="mb-5">
+                                {#if content.formInviteType == "text"}
+                                    <div
+                                        class="text-2xl font-bold mb-2 text-center"
+                                        style="color : black !important;"
+                                    >
+                                        {content.formSubjectText}
+                                    </div>
+                                {:else}
+                                    <img
+                                        src={setImg(content.formSubjectImg)}
+                                        alt=""
+                                        class="mx-auto"
+                                    />
+                                {/if}
+                            </div>
+                            {#each content.formList as form, idx}
+                                {#if form.type == "name"}
+                                    <NameInput
+                                        bind:val={customerName}
+                                        require={form.require}
+                                    />
+                                    <div class="my-3"></div>
+                                {:else if form.type == "phone"}
+                                    <PhoneInput
+                                        bind:val1={phone1}
+                                        bind:val2={phone2}
+                                        bind:val3={phone3}
+                                        require={form.require}
+                                    />
+                                    <div class="my-3"></div>
+                                {:else if form.type == "date"}
+                                    <DateInput
+                                        bind:setDate={formDate}
+                                        require={form.require}
+                                    />
+                                    <div class="my-3"></div>
+                                {:else if form.type == "datetime"}
+                                    <DateTimeInput
+                                        bind:setDate={formDate}
+                                        bind:setTime={formTime}
+                                        require={form.require}
+                                    />
+                                    <div class="my-3"></div>
+                                {:else if form.type == "memo"}
+                                    <MemoInput
+                                        word={form.word}
+                                        bind:val={memos[idx]}
+                                        require={form.require}
+                                    />
+                                    <div class="my-3"></div>
+                                {/if}
+                            {/each}
+
+                            <div class="flex justify-between items-center my-5">
+                                <div>
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            class="checkbox checkbox-sm mr-1"
+                                            bind:checked={inviteChk}
+                                        />
+                                        <span>개인정보 보호동의</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <button
+                                        class=" cursor-pointer"
+                                        onclick={() => {
+                                            modalOpen = true;
+                                        }}
+                                    >
+                                        [보기]
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 text-sm">
+                                {#each content.formAgreeAddWord as agreeWord}
+                                    <p>{agreeWord}</p>
+                                {/each}
+                            </div>
+
+                            {#if content.formButtonType == "text"}
+                                <button
+                                    class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
+                                    onclick={formUpdate}
+                                >
+                                    {content.formButtonText}
+                                </button>
+                            {:else}
+                                <button onclick={formUpdate}>
+                                    <img
+                                        src={setImg(content.formButtonImg)}
+                                        alt=""
+                                        class="mx-auto"
+                                    />
+                                </button>
+                            {/if}
+                        </div>
+                    </div>
+                {:else if content.marginHeight}
+                    <div style="height: {content.marginHeight}px;"></div>
+                {:else if content.youtubeTag}
+                    <div class="youtube-container mt-3 flex justify-center">
+                        {@html content.youtubeTag}
+                    </div>
+                {/if}
+            {/each}
+        </div>
+    {/each}
+
+    <!-- 기존 버전 폼!!!! 기존 사용하던 사이트를 위해 남겨두기!! -->
+    {#if !loading && hasSectionFormList.length == 0}
+        <div
+            class="max-w-[860px] mx-auto md:flex md:justify-center md:items-center"
+            bind:this={eventEle}
+        >
+            {#if siteData.ld_event_img}
+                <div class="md:w-1/2">
+                    <a href="/sms" data-sveltekit-reload>
+                        <img src={setImg(siteData["ld_event_img"])} alt="" />
+                    </a>
+                </div>
+            {/if}
+
+            <div class="md:w-1/2 md:px-5 suit-font flex items-stretch">
+                <div
+                    class="w-full p-5 flex flex-col justify-center gap-8 rounded-md"
+                    style="background-color: #f7f4ec !important;"
+                >
+                    <div>
+                        <div
+                            class="text-3xl font-bold mb-2 text-center"
+                            style="color : black !important;"
+                        >
+                            {siteData.ld_db_input_subject
+                                ? siteData.ld_db_input_subject
+                                : "초대장 발급 확인"}
+                        </div>
+                        <!-- <div class="text-xs">
+					관심고객 등록을 통하여 이름, 전화번호만을 수집하며, 정보 및
+					이벤트 등의 안내를 위해서만 사용됩니다. 회사는 상담후
+					해당정보를 지체없이 파기합니다. 양식 제출 시
+					개인정보수집이용에 동의한 것으로 간주됩니다.
+				</div> -->
+                    </div>
+                    <div>
+                        <div class="mb-3">
+                            <input
+                                type="text"
+                                class="w-full text-lg p-2.5 rounded-xl bg-white focus:outline-none"
+                                placeholder="이름"
+                                bind:value={customerName}
+                            />
+                        </div>
+                        <div class="mb-3">
+                            <input
+                                type="text"
+                                class="w-full text-lg p-2.5 rounded-xl bg-white focus:outline-none"
+                                placeholder="전화번호"
+                                bind:value={customerPhone}
+                            />
+                        </div>
+
+                        <div class="my-6">
+                            {#if siteData.ld_personal_info_view == "on"}
+                                <div
+                                    class="flex items-center justify-between mb-2 text-sm pr-3"
+                                >
+                                    <div>
+                                        <label class="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                class="checkbox checkbox-neutral checkbox-sm"
+                                                bind:checked={inviteChk}
+                                            />
+                                            <span
+                                                style="color:black !important;"
+                                                >개인정보 보호동의</span
+                                            >
+                                        </label>
+                                    </div>
+                                    <button
+                                        class=" text-blue-600"
+                                        onclick={() => {
+                                            modalOpen = true;
+                                        }}
+                                    >
+                                        [보기]
+                                    </button>
+                                </div>
+                            {/if}
+
+                            {#if siteData.ld_invite_bool != "off"}
+                                <div
+                                    class="flex items-center gap-3 mb-2 text-sm"
+                                >
+                                    <div>
+                                        <img
+                                            src="/megaphone.png"
+                                            alt=""
+                                            width="20"
+                                            height="20"
+                                        />
+                                    </div>
+                                    <div style="color:black !important;">
+                                        {#if siteData.ld_invite_message}
+                                            {siteData.ld_invite_message}
+                                        {:else}
+                                            <span>
+                                                모델하우스는 초대장이 있으신분만
+                                                방문 가능합니다.
+                                            </span>
+                                        {/if}
+                                    </div>
+                                </div>
+                            {/if}
+
+                            {#if siteData.ld_reserve_msg_bool != "off"}
+                                <div class="flex items-center gap-3 text-sm">
+                                    <div>
+                                        <img
+                                            src="/megaphone.png"
+                                            alt=""
+                                            width="20"
+                                            height="20"
+                                        />
+                                    </div>
+                                    <div style="color:red !important;">
+                                        미 예약시 관람을 제한하는 점 양해
+                                        부탁드립니다.
+                                    </div>
+                                </div>
+                            {/if}
+                        </div>
+
+                        <!-- svelte-ignore legacy_code -->
+                        <div class="w-full">
+                            <!-- svelte-ignore a11y-click-events-have-key-events -->
+                            <!-- svelte-ignore a11y-no-static-element-interactions -->
+                            <!-- svelte-ignore a11y-missing-attribute -->
+                            <a href="thankyou" data-sveltekit-reload>
+                                <button
+                                    class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
+                                    onclick={formUpdate}
+                                >
+                                    {#if siteData.ld_btn_message}
+                                        {siteData.ld_btn_message}
+                                    {:else}
+                                        예약 확인
+                                    {/if}
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+</div>
+
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="fixed bottom-0 left-0 w-full z-999 block md:hidden">
+    <div class="flex">
+        {#if siteData.ld_phone_num && siteData["ld_mobile_bt_phone_img"]}
+            <a href="/tel" data-sveltekit-reload>
+                {#if siteData.ld_mobile_bt_phone_img}
+                    <div>
+                        <img
+                            src={siteData["ld_mobile_bt_phone_img"].includes(
+                                "http",
+                            )
+                                ? siteData["ld_mobile_bt_phone_img"]
+                                : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
+                            alt=""
+                        />
+                    </div>
+                {:else}
+                    <div>
+                        <img src="/bottom-fix/left-phone.jpg" alt="" />
+                    </div>
+                {/if}
+            </a>
+        {:else}
+            <a href="/tel" data-sveltekit-reload>
+                {#if siteData.ld_mobile_bt_phone_img}
+                    <div>
+                        <img
+                            src={siteData["ld_mobile_bt_phone_img"].includes(
+                                "http",
+                            )
+                                ? siteData["ld_mobile_bt_phone_img"]
+                                : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
+                            alt=""
+                        />
+                    </div>
+                {:else}
+                    <div>
+                        <img src="/bottom-fix/left-phone.jpg" alt="" />
+                    </div>
+                {/if}
+            </a>
+        {/if}
+
+        <div class="cursor-pointer" onclick={moveForm}>
+            {#if siteData.ld_mobile_bt_event_img}
+                <img
+                    src={siteData["ld_mobile_bt_event_img"].includes("http")
+                        ? siteData["ld_mobile_bt_event_img"]
+                        : `${back_api_origin}${siteData["ld_mobile_bt_event_img"]}`}
+                    alt=""
+                />
+            {:else}
+                <img src="/bottom-fix/right-form.jpg" alt="" />
+            {/if}
+        </div>
+    </div>
+</div>
+
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- 우측 고정 버튼 -->
+<div
+    class="fixed bottom-16 md:bottom-1/3 right-5 z-999 cursor-pointer"
+    onclick={moveForm}
+>
+    <div class="w-20 md:w-24 animate-pulse rounded-full overflow-hidden">
+        {#if siteData.ld_invite_image}
+            <img src={setImg(siteData.ld_invite_image)} alt="" />
+        {:else}
+            <img src="/move-icon.png" alt="" />
+        {/if}
+    </div>
+</div>
+
+<style>
+    /* 신버전 CSS */
+    .observe-hidden {
+        opacity: 0;
+        transform: translateY(40px); /* 초기 위치를 아래로 10px 이동 */
+    }
+    .observe-fade-up {
+        transition:
+            opacity 0.8s ease-out,
+            /* opacity 애니메이션 속도 조절 (더 짧게) */ transform 0.8s ease-out; /* transform 애니메이션 속도 조절 (더 짧게) */
+        transition-delay: var(--fade-up-delay, 0ms);
+    }
+    .fade-up-active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .background-area {
+        background-repeat: no-repeat;
+        background-size: 100% auto;
+    }
+
+    .bg-box {
+        width: 100%; /* 너가 원하는 기준 크기 */
+        background-size: cover; /* or contain */
+        background-position: center;
+    }
+</style>
