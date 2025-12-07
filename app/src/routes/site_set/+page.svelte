@@ -319,6 +319,24 @@
     sectionObj 는 contentList 외적으로 backgroundImg (배경 이미지) / bgType (백그라운드 타입, 비율 또는 높이 맞춤) / paddingTopVal (상단 여백) / paddingBottomVal (하단 여백)
     으로 이루어져 있음
     */
+
+    function add_eModel() {
+        // eModelBool
+        const tempArr = [...menuObj.menus];
+        tempArr.push({ name: "e-모델하우스", link: "emodel", emenu: [] });
+        menuObj.menus = tempArr;
+        eModelBool = true;
+    }
+
+    function add_emodel_ele() {
+        // menuObj.menus[this.value]['emenu']
+        const emodelObj = { type: eModelType, iframe_link: eModelLink };
+        const tempArr = [...menuObj.menus[this.value]["emenu"]];
+        tempArr.push(emodelObj);
+        menuObj.menus[this.value]["emenu"] = tempArr;
+        eModelType = "";
+        eModelLink = "";
+    }
 </script>
 
 <!-- svelte-ignore event_directive_deprecated -->
