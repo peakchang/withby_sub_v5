@@ -1,6 +1,7 @@
 <script>
     import OneImageUpload from "$lib/components/OneImageUpload.svelte";
     import axios from "axios";
+    import { page } from "$app/stores";
 
     import SectionEdit from "$lib/components/SectionEdit.svelte";
     import {
@@ -21,11 +22,7 @@
     import { toast } from "$lib/store.js";
     import { removeNulls } from "$lib/lib.js";
 
-    // export let data;
-
     let { data } = $props();
-
-    // $: data, setData();
 
     let getId = $state("");
     let getDomain = $state("");
@@ -83,8 +80,8 @@
     onMount(() => {
         getId = data.getId;
         getDomain = data.allData.ld_domain;
+
         siteData = data.allData;
-        console.log(siteData);
 
         // 기본 변수에 값이 있어야 하는 경우 (처음 만들었을때) 기본값 지정.
         siteData.ld_invite_message ??=
@@ -132,8 +129,6 @@
 배정된 담당자가 연락 드릴 예정입니다.
             `;
         }
-
-        console.log(mainContents);
     });
 
     // 섹션 완료 후 모달 닫힐때 mainContents 에 섹션 push 또는 수정 하면서 업데이트!!!
@@ -364,10 +359,9 @@
             <button
                 class="btn btn-secondary btn-sm"
                 on:click={() => {
-                    window.open(
-                        `https://${getId}.adpeak.kr`,
-                        "width=600,height=800",
-                    );
+                    console.log(`${$page.url.protocol}/${$page.url.host}`);
+
+                    window.open(`${$page.url.protocol}//${$page.url.host}`);
                 }}
             >
                 미리보기

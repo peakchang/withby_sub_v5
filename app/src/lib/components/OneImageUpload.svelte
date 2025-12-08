@@ -11,10 +11,6 @@
 
     let { imgPath, sendImgPath, domainFolder = "" } = $props();
 
-    onMount(() => {
-        console.log(imgPath);
-    });
-
     // 이미지를 선택하면 사이즈 변경 (최대 1200px) 및 webp 변경 후 업로드
     const uploadImageoAct = (e) => {
         const input = document.createElement("input");
