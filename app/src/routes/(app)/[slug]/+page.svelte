@@ -88,6 +88,10 @@
                 }
 
                 console.log(imgArr);
+
+                imgArr.map((img) => {
+                    console.log(setImg(img));
+                });
             } catch (error) {
                 console.error("JSON 파싱 오류:", error);
             }
