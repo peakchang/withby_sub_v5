@@ -1,35 +1,31 @@
 <script>
     import { aosStyleList } from "$lib/const.js";
-    import { customerSubmit } from "$lib/lib";
+    import { customerSubmit, setImg } from "$lib/lib";
     import { back_api_origin } from "$lib/const";
     import { browser } from "$app/environment";
     import { onMount } from "svelte";
 
-    console.log("slug 들어옴!!!!!!!!!!!");
-
     let { data } = $props();
 
     // 공통 변수
-    let allSiteData = {};
+    let allSiteData = $state({});
 
     // 구버전 변수
-    let imgList = [];
-    let dataAosList = [];
-    let customerName = "";
-    let customerPhone = "";
+    let imgList = $state([]);
+    let dataAosList = $state([]);
+    let customerName = $state("");
+    let customerPhone = $state("");
 
     // 신버전 변수
-    let menuData = {};
-    let imgArr = [];
+    let menuData = $state({});
+    let imgArr = $state([]);
     let observer;
     let elementsToObserve;
-    let x;
+    let x = $state(0);
 
     onMount(() => {
-        if (
-            !allSiteData["ld_view_type"] ||
-            allSiteData["ld_view_type"] == "old"
-        ) {
+        allSiteData = data.subView;
+        if (allSiteData["ld_view_type"] == "old") {
         } else {
             if (browser) {
                 elementsToObserve =
@@ -59,45 +55,44 @@
                 }
             });
         }
-    });
 
-    allSiteData = data.subView;
-    const nowPage = data.nowPage;
-    // 구버전 코드
-    if (!allSiteData.ld_view_type || allSiteData.ld_view_type == "old") {
-        if (allSiteData[`ld_pg${data.index}`]) {
-            imgList = allSiteData[`ld_pg${data.index}`].split(",");
-        } else {
-            imgList = [];
-        }
-    } else {
-        // 신버전 코드
-        try {
-            const getmenuData = JSON.parse(allSiteData.ld_json_menus);
-            menuData = getmenuData.menus.find((item) => item.link === nowPage);
-
-            console.log("menuData");
-
-            console.log(menuData);
-
-            if (menuData.imgArr && menuData.imgArr.length > 0) {
-                imgArr = menuData.imgArr.map((e) => {
-                    let res = "";
-                    if (e.includes("youtube")) {
-                        res = generateYouTubeEmbed(e);
-                    } else {
-                        res = e;
-                    }
-
-                    return res;
-                });
-                console.log(menuData);
-                console.log(imgArr);
+        const nowPage = data.nowPage;
+        // 구버전 코드
+        if (allSiteData.ld_view_type == "old") {
+            if (allSiteData[`ld_pg${data.index}`]) {
+                imgList = allSiteData[`ld_pg${data.index}`].split(",");
+            } else {
+                imgList = [];
             }
-        } catch (error) {
-            console.error("JSON 파싱 오류:", error);
+        } else {
+            // 신버전 코드
+            try {
+                const getmenuData = JSON.parse(allSiteData.ld_json_menus);
+                menuData = getmenuData.menus.find(
+                    (item) => item.link === nowPage,
+                );
+
+                console.log(menuData);
+
+                if (menuData.imgArr && menuData.imgArr.length > 0) {
+                    imgArr = menuData.imgArr.map((e) => {
+                        let res = "";
+                        if (e.includes("youtube")) {
+                            res = generateYouTubeEmbed(e);
+                        } else {
+                            res = e;
+                        }
+
+                        return res;
+                    });
+                }
+
+                console.log(imgArr);
+            } catch (error) {
+                console.error("JSON 파싱 오류:", error);
+            }
         }
-    }
+    });
 
     // $: x, set_x();
     // function set_x() {
@@ -105,8 +100,6 @@
     // }
 
     function changTab() {
-        console.log(this.value);
-
         // 일단 tab-active 클래스 다 없애기
         if (browser) {
             const tabList = document.querySelectorAll(".tab");
@@ -158,7 +151,7 @@
 
 <svelte:window bind:innerWidth={x} />
 
-{#if !allSiteData.ld_view_type || allSiteData.ld_view_type == "old"}
+{#if allSiteData.ld_view_type == "old"}
     <!-- 구버전 -->
     {#each imgList as img, idx}
         {#if idx == 0}
@@ -196,7 +189,7 @@
                         role="tab"
                         class="tab tab-active"
                         value={idx}
-                        on:click={changTab}
+                        onclick={changTab}
                     >
                         {emodel.type}
                     </button>
@@ -205,7 +198,7 @@
                         role="tab"
                         class="tab"
                         value={idx}
-                        on:click={changTab}
+                        onclick={changTab}
                     >
                         {emodel.type}
                     </button>
@@ -216,8 +209,9 @@
         <div class="border">
             {#each menuData.emenu as emodel, idx}
                 {#if idx == 0}
+                    <!-- svelte-ignore legacy_code -->
                     <div class="emodel-area w-full type{idx}">
-                        <!-- svelte-ignore a11y-missing-attribute -->
+                        <!-- svelte-ignore a11y_missing_attribute -->
                         <iframe
                             src={emodel.iframe_link}
                             frameborder="0"
@@ -226,8 +220,10 @@
                         ></iframe>
                     </div>
                 {:else}
+                    <!-- svelte-ignore legacy_code -->
                     <div class="emodel-area w-full type{idx} hidden">
                         <!-- svelte-ignore a11y-missing-attribute -->
+                        <!-- svelte-ignore a11y_missing_attribute -->
                         <iframe
                             src={emodel.iframe_link}
                             frameborder="0"
@@ -241,7 +237,7 @@
     </div>
 {:else}
     <!-- 신버전 -->
-    <div class="mt-5">
+    <div class="mt-30">
         {#each imgArr as img}
             {#if img.includes("iframe")}
                 <div
@@ -259,13 +255,7 @@
                     class:observe-fade-up={menuData.effect == "on"}
                     data-delay="100"
                 >
-                    <img
-                        src={img.includes("http")
-                            ? img
-                            : `${back_api_origin}${img}`}
-                        alt=""
-                        class="w-full"
-                    />
+                    <img src={setImg(img)} alt="" class="w-full" />
                 </div>
             {/if}
         {/each}

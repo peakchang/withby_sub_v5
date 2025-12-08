@@ -112,6 +112,9 @@ const uploadMultipleImagesAct = (back_api_url, callback, options = {}) => {
                 imgForm.append("onimg", compressedFile, fileName);
             });
 
+            console.log('업로드 요청 시작!!!');
+            
+
             // 업로드 요청
             const res = await axios.post(back_api_url, imgForm, {
                 headers: {

@@ -7,6 +7,7 @@
         back_api_origin,
         gcs_img,
     } from "$lib/const";
+    import { setImg } from "$lib/lib";
     import { createEventDispatcher, onMount } from "svelte";
 
     let { imgPath, sendImgPath, domainFolder = "" } = $props();
@@ -96,9 +97,8 @@
     };
 
     async function deleteImageAct() {
-
         console.log(imgPath);
-        
+
         try {
             const res = await axios.post(
                 `${back_api_sub}/image/delete_gcs_img`,
@@ -113,28 +113,11 @@
         imgPath = "";
         sendImgPath(imgPath);
     }
-
-    function setImage(imgUrl) {
-        let setImgUrl = "";
-        try {
-            if (imgUrl.includes("http")) {
-                setImgUrl = imgUrl;
-            } else if (imgUrl.includes("subimg")) {
-                setImgUrl = `${back_api_origin}${imgPath}`;
-            } else {
-                setImgUrl = `${gcs_img}/${imgPath}`;
-            }
-        } catch (error) {
-            console.error(error.message);
-        }
-
-        return setImgUrl;
-    }
 </script>
 
 <div class="mb-2">
     {#if imgPath}
-        <img src={setImage(imgPath)} alt="" class="mx-auto" />
+        <img src={setImg(imgPath)} alt="" class="mx-auto" />
     {/if}
 </div>
 

@@ -217,6 +217,11 @@
 
     function logoUpdate() {}
 
+    function updateImgArr(imgArr, idx) {
+        const imgList = imgArr.map((e) => e.src);
+        menuObj.menus[idx]["imgArr"] = imgList;
+    }
+
     /*
     섹션 추가 및 수정시에 모달 열기
     여는 버튼의 value 가 none 일 경우 섹션 추가 / 아닐 경우 수정으로!!
@@ -896,15 +901,20 @@
                                     </div>
                                     <div class="p-2">
                                         <SortableImgMovie
-                                            on:updateImgeList={(e) => {
-                                                const imgArr = e.detail.imgArr;
+                                            updateImgeList={(e) => {
+                                                console.log(
+                                                    "업데이트 이미지 리스트!!!",
+                                                );
+                                                console.log(e);
+
+                                                const imgArr = e;
                                                 updateImgArr(imgArr, idx);
                                             }}
                                             modifyImageList={menuObj["menus"][
                                                 idx
                                             ]["imgArr"]}
                                             domainFolder={getDomain}
-                                        ></SortableImgMovie>
+                                        />
                                     </div>
                                 </td>
                             {/if}
@@ -1088,7 +1098,7 @@
                                         <input
                                             type="radio"
                                             value="on"
-                                            class="radio radio-info radio-sm"
+                                            class="radio radio-info radio-sm z-10"
                                             bind:group={siteData.ld_invite_bool}
                                         />
                                         있음

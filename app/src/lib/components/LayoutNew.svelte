@@ -32,20 +32,14 @@
     let isMenuVisible = $state(true);
 
     onMount(async () => {
-        console.log("mounted!!!");
-
         try {
             if (siteData.ld_json_header) {
                 headerData = JSON.parse(siteData.ld_json_header);
             }
 
-            console.log(headerData);
-
             if (siteData.ld_json_menus) {
                 menuData = JSON.parse(siteData.ld_json_menus);
             }
-            console.log("메뉴 데이터!!!!!!");
-            console.log(menuData);
         } catch (error) {
             console.error("JSON 파싱 오류:", error);
         }
