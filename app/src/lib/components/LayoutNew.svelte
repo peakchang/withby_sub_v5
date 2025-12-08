@@ -32,6 +32,8 @@
     let isMenuVisible = $state(true);
 
     onMount(async () => {
+        console.log();
+
         try {
             if (siteData.ld_json_header) {
                 headerData = JSON.parse(siteData.ld_json_header);
@@ -51,14 +53,16 @@
 
     $effect(() => {
         if (y) {
-            if (y > lastScrollY) {
-                if (y > 200) {
-                    isMenuVisible = false;
+            if (siteData.ld_Interaction == "Interaction") {
+                if (y > lastScrollY) {
+                    if (y > 200) {
+                        isMenuVisible = false;
+                    }
+                } else if (y < lastScrollY) {
+                    isMenuVisible = true;
                 }
-            } else if (y < lastScrollY) {
-                isMenuVisible = true;
+                lastScrollY = y;
             }
-            lastScrollY = y;
         }
     });
 

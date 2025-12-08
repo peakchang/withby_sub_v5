@@ -101,6 +101,8 @@
             siteData.ld_Interaction = "fix";
         }
 
+        console.log(siteData.ld_Interaction);
+
         if (siteData.ld_font) {
             selectedFont = fonts.find((v) => v.class == siteData.ld_font);
         }
@@ -364,8 +366,6 @@
             <button
                 class="btn btn-secondary btn-sm"
                 on:click={() => {
-                    console.log(`${$page.url.protocol}/${$page.url.host}`);
-
                     window.open(`${$page.url.protocol}//${$page.url.host}`);
                 }}
             >
@@ -902,11 +902,6 @@
                                     <div class="p-2">
                                         <SortableImgMovie
                                             updateImgeList={(e) => {
-                                                console.log(
-                                                    "업데이트 이미지 리스트!!!",
-                                                );
-                                                console.log(e);
-
                                                 const imgArr = e;
                                                 updateImgArr(imgArr, idx);
                                             }}
