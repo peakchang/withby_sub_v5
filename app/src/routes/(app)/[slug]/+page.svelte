@@ -43,6 +43,8 @@
                 });
             });
 
+            console.log(observer);
+
             elementsToObserve.forEach((element) => {
                 // 초기 숨김 클래스 추가
                 element.classList.add("observe-hidden");
@@ -268,10 +270,15 @@
 
 <style>
     /* 신버전 CSS */
+
+    /*
     .observe-hidden {
         opacity: 0;
-        transform: translateY(40px); /* 초기 위치를 아래로 10px 이동 */
+        transform: translateY(40px); 
     }
+    */
+    /* 초기 위치를 아래로 10px 이동 */
+
     .observe-fade-up {
         transition:
             opacity 0.8s ease-out,
