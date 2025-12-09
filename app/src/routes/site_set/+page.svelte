@@ -361,6 +361,31 @@
         }
         siteCopyAreaShow = false;
     }
+
+    function sortSection() {
+        console.log(this.value);
+        console.log(this.dataset.direct);
+        console.log(mainContents);
+
+        const index = Number(this.value);
+
+        if (this.dataset.direct === "up" && index > 0) {
+            [mainContents[index - 1], mainContents[index]] = [
+                mainContents[index],
+                mainContents[index - 1],
+            ];
+        } else if (
+            this.dataset.direct === "down" &&
+            index < mainContents.length - 1
+        ) {
+            [mainContents[index + 1], mainContents[index]] = [
+                mainContents[index],
+                mainContents[index + 1],
+            ];
+        } else {
+            console.log("더이상 이동 불가 ㅠ");
+        }
+    }
 </script>
 
 <!-- svelte-ignore event_directive_deprecated -->
@@ -677,24 +702,57 @@
 
         {#if mainContents.length != 0}
             {#each mainContents as content, idx}
-                <div class="border border-gray-300 rounded-md p-2 mb-1">
-                    {idx + 1} 번째 섹션
+                <div
+                    class="border border-gray-300 rounded-md p-2 mb-1 flex items-center"
+                >
+                    <div class="w-[280px] flex items-center gap-3">
+                        <span>
+                            {idx + 1} 번째 섹션
+                        </span>
 
-                    <button
-                        class="btn btn-soft btn-accent btn-sm"
-                        value={idx}
-                        on:click={openSectionModal}
-                    >
-                        자세히 보기
-                    </button>
+                        <button
+                            class="btn btn-soft btn-accent btn-sm"
+                            value={idx}
+                            on:click={openSectionModal}
+                        >
+                            자세히 보기
+                        </button>
 
-                    <button
-                        class="btn btn-soft btn-error btn-sm"
-                        value={idx}
-                        on:click={deleteSection}
-                    >
-                        섹션 삭제
-                    </button>
+                        <button
+                            class="btn btn-soft btn-error btn-sm"
+                            value={idx}
+                            on:click={deleteSection}
+                        >
+                            섹션 삭제
+                        </button>
+                    </div>
+
+                    <!-- svelte-ignore a11y_consider_explicit_label -->
+                    <div class="flex items-center gap-2">
+                        <button
+                            class="text-blue-500"
+                            value={idx}
+                            data-direct="up"
+                            on:click={sortSection}
+                        >
+                            <i
+                                class="fa fa-chevron-circle-up"
+                                aria-hidden="true"
+                            ></i>
+                        </button>
+
+                        <button
+                            class="text-blue-500"
+                            value={idx}
+                            data-direct="up"
+                            on:click={sortSection}
+                        >
+                            <i
+                                class="fa fa-chevron-circle-down"
+                                aria-hidden="true"
+                            ></i>
+                        </button>
+                    </div>
                 </div>
             {/each}
         {/if}
