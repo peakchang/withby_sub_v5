@@ -1,11 +1,28 @@
 <script>
     import { onMount } from "svelte";
+
+    import { browser } from "$app/environment";
+
     import LayoutOld from "$lib/components/LayoutOld.svelte";
     import OldForm from "$lib/components/OldForm.svelte";
-
     import LayoutNew from "$lib/components/LayoutNew.svelte";
 
+    import DateInput from "$lib/components/form-list/DateInput.svelte";
+    import DateTimeInput from "$lib/components/form-list/DateTimeInput.svelte";
+    import MemoInput from "$lib/components/form-list/MemoInput.svelte";
+    import NameInput from "$lib/components/form-list/NameInput.svelte";
+    import PhoneInput from "$lib/components/form-list/PhoneInput.svelte";
+    import PreForm from "$lib/components/PreForm.svelte";
+
+    import moment from "moment-timezone";
+
     import { back_api, back_api_origin } from "$lib/const";
+
+    import {
+        validatePhoneNumber,
+        convertPrivacyTextToHtml,
+        setImg,
+    } from "$lib/lib";
 
     import Cookies from "js-cookie";
     import axios from "axios";
@@ -19,6 +36,17 @@
 
     // 팝업은 그냥 나오게 하기!!!
     let showPopup = $state(false);
+
+    // 폼 관련 변수!!
+    let bottomFixFormData = $state(null); // 하단 고정 폼 유무 및 데이터 정보 담기
+    let customerName = $state("");
+    let phone1 = $state("010");
+    let phone2 = $state("");
+    let phone3 = $state("");
+    let memos = $state([]);
+    let formDate = $state(moment().format("YYYY-MM-DD"));
+    let formTime = $state("base");
+    let inviteChk = $state(false);
 
     // 방문 기록은 공통으로 나오게 하기!!
     onMount(async () => {
@@ -34,6 +62,26 @@
 
             Cookies.set("topby_visited", "ok", { expires: 1 });
         }
+
+        // 하단 고정 폼 처리용
+        if (siteData.ld_json_main) {
+            const mainData = JSON.parse(siteData.ld_json_main);
+            for (let i = 0; i < mainData.length; i++) {
+                const mdata = mainData[i];
+
+                if (mdata.contentList) {
+                    for (let j = 0; j < mdata.contentList.length; j++) {
+                        if (
+                            mdata.contentList[j]["formList"] &&
+                            mdata.contentList[j]["fixedBottom"]
+                        ) {
+                            bottomFixFormData = mdata.contentList[j];
+                            console.log(bottomFixFormData);
+                        }
+                    }
+                }
+            }
+        }
     });
 
     function closePopup() {
@@ -45,6 +93,156 @@
     function mainPageMarginSet(e) {
         mainPageMarginTop = e.mainPageMarginTop;
         screenWidth = e.screenWidth;
+    }
+
+    async function formUpdate(e) {
+        e.preventDefault();
+        const siteName = siteData.ld_site;
+        let formVal = {};
+
+        // 구버전 폼 검사
+        if (hasSectionFormList.length == 0) {
+            if (!customerName) {
+                alert("성함을 입력 해주세요.");
+                return;
+            }
+
+            if (!customerPhone) {
+                alert("전화번호를 입력 해주세요.");
+                return;
+            }
+
+            formVal = {
+                siteName: siteName,
+                name: customerName,
+                phone: customerPhone,
+            };
+        } else {
+            customerPhone = phone1 + phone2 + phone3;
+
+            const nameRequireChk = findFormByType(hasSectionFormList, "name");
+
+            if (nameRequireChk && nameRequireChk.require == true) {
+                if (!customerName) {
+                    alert("성함을 입력 해주세요.");
+                    return;
+                }
+            }
+
+            const phoneRequireChk = findFormByType(hasSectionFormList, "phone");
+
+            if (phoneRequireChk.require) {
+                if (!customerPhone || customerPhone == "010") {
+                    alert("전화번호를 입력 해주세요.");
+                    return;
+                }
+            }
+
+            const dateRequireChk = findFormByType(hasSectionFormList, "date");
+
+            if (dateRequireChk && dateRequireChk.require) {
+                if (!formDate) {
+                    alert("날짜를 입력 해 주세요.");
+                    return;
+                }
+            }
+
+            const dateTimeRequireChk = findFormByType(
+                hasSectionFormList,
+                "datetime",
+            );
+
+            if (dateTimeRequireChk && dateTimeRequireChk.require) {
+                if (!formDate || formTime == "base") {
+                    alert("날짜 및 시간을 입력 해 주세요.");
+                    return;
+                }
+            }
+
+            const memoFormArr = hasSectionFormList.filter(
+                (item) => item.type === "memo",
+            );
+            const memoValArr = memos.filter(Boolean);
+
+            for (let i = 0; i < memoFormArr.length; i++) {
+                const memoForm = memoFormArr[i];
+                const memoVal = memoValArr[i];
+                if (memoForm.require) {
+                    if (!memoVal) {
+                        alert("필수 메모 항목을 입력 해 주세요!");
+                        return;
+                    }
+                }
+            }
+
+            formVal = {
+                siteName: siteName,
+                name: customerName,
+                phone: customerPhone,
+                date: formDate,
+                time: formTime,
+            };
+
+            for (let i = 0; i < memoValArr.length; i++) {
+                const memo = memoValArr[i];
+                const num = i + 1;
+                formVal[`memo_${num}_question`] = memoFormArr[i].word;
+                formVal[`memo_${num}_answer`] = memo;
+            }
+        }
+
+        if (!inviteChk && siteData.ld_personal_info_view == "on") {
+            alert("개인정보 보호동의에 체크해주셔야 합니다.");
+            return;
+        }
+
+        if (!validatePhoneNumber(customerPhone)) {
+            alert("정상적인 휴대폰 번호만 가능합니다.");
+            return false;
+        }
+
+        try {
+            const res = await axios.post(
+                `${back_api}/update_customer`,
+                formVal,
+            );
+
+            if (res.status == 200) {
+                customerName = "";
+                customerPhone = "";
+                phone1 = "010";
+                phone2 = "";
+                phone3 = "";
+                memos = [];
+                formDate = moment().format("YYYY-MM-DD");
+                formTime = "base";
+                inviteChk = false;
+            }
+
+            window.location.href = "/thankyou?return=true";
+        } catch (error) {
+            console.error(error.message);
+
+            alert("에러가 발생했습니다. 관리자에게 문의해주세요");
+        }
+    }
+
+    function moveForm() {
+        if (browser) {
+            let y;
+            let moveEle;
+            const eventEle = document.querySelectorAll(".event-ele");
+            const formEle = document.querySelectorAll(".form-ele");
+
+            if (eventEle.length > 0) {
+                moveEle = eventEle[eventEle.length - 1];
+            } else {
+                moveEle = formEle[formEle.length - 1];
+            }
+
+            y = moveEle.getBoundingClientRect().top + window.pageYOffset - 150;
+            window.scrollTo({ top: y, behavior: "smooth" });
+        }
     }
 </script>
 
@@ -60,7 +258,7 @@
 
             <button
                 class="text-lg flex justify-center items-center"
-                on:click={closePopup}
+                onclick={closePopup}
             >
                 <i class="fa fa-times" aria-hidden="true"></i>
             </button>
@@ -88,6 +286,204 @@
         style="margin-top: {mainPageMarginTop + 10}px; max-width:{screenWidth};"
     >
         {@render children()}
+    </div>
+
+    <!-- 모바일 하단 고정 이미지 -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="fixed bottom-0 left-0 w-full z-999 block md:hidden">
+        <div class="flex">
+            {#if siteData.ld_phone_num && siteData["ld_mobile_bt_phone_img"]}
+                <a href="/tel" data-sveltekit-reload>
+                    {#if siteData.ld_mobile_bt_phone_img}
+                        <div>
+                            <img
+                                src={siteData[
+                                    "ld_mobile_bt_phone_img"
+                                ].includes("http")
+                                    ? siteData["ld_mobile_bt_phone_img"]
+                                    : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
+                                alt=""
+                            />
+                        </div>
+                    {:else}
+                        <div>
+                            <img src="/bottom-fix/left-phone.jpg" alt="" />
+                        </div>
+                    {/if}
+                </a>
+            {:else}
+                <a href="/tel" data-sveltekit-reload>
+                    {#if siteData.ld_mobile_bt_phone_img}
+                        <div>
+                            <img
+                                src={siteData[
+                                    "ld_mobile_bt_phone_img"
+                                ].includes("http")
+                                    ? siteData["ld_mobile_bt_phone_img"]
+                                    : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
+                                alt=""
+                            />
+                        </div>
+                    {:else}
+                        <div>
+                            <img src="/bottom-fix/left-phone.jpg" alt="" />
+                        </div>
+                    {/if}
+                </a>
+            {/if}
+
+            <div class="cursor-pointer" onclick={moveForm}>
+                {#if siteData.ld_mobile_bt_event_img}
+                    <img
+                        src={siteData["ld_mobile_bt_event_img"].includes("http")
+                            ? siteData["ld_mobile_bt_event_img"]
+                            : `${back_api_origin}${siteData["ld_mobile_bt_event_img"]}`}
+                        alt=""
+                    />
+                {:else}
+                    <img src="/bottom-fix/right-form.jpg" alt="" />
+                {/if}
+            </div>
+        </div>
+    </div>
+
+    <!-- 우측 고정 버튼 -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="fixed bottom-16 md:bottom-1/3 right-5 z-999 cursor-pointer"
+        onclick={moveForm}
+    >
+        <div class="w-20 md:w-24 animate-pulse rounded-full overflow-hidden">
+            {#if siteData.ld_invite_image}
+                <img src={setImg(siteData.ld_invite_image)} alt="" />
+            {:else}
+                <img src="/move-icon.png" alt="" />
+            {/if}
+        </div>
+    </div>
+{/if}
+
+{#if bottomFixFormData}
+    <div class="max-w-[860px] mx-auto">
+        <div class="gap-1 md:flex md:justify-center md:items-center">
+            <!-- 문자 고정 이미지 -->
+            {#if bottomFixFormData.formInviteImg}
+                <div class="w-full md:w-1/2 event-ele">
+                    <a href="/sms" data-sveltekit-reload>
+                        <img
+                            src={setImg(bottomFixFormData.formInviteImg)}
+                            alt=""
+                        />
+                    </a>
+                </div>
+            {/if}
+
+            <div
+                class="border border-gray-400 mt-7 md:mt-0 w-full md:w-1/2 mx-auto rounded-lg p-5 form-ele"
+            >
+                <div class="mb-5">
+                    {#if bottomFixFormData.formInviteType == "text"}
+                        <div
+                            class="text-2xl font-bold mb-2 text-center"
+                            style="color : black !important;"
+                        >
+                            {bottomFixFormData.formSubjectText}
+                        </div>
+                    {:else}
+                        <img
+                            src={setImg(bottomFixFormData.formSubjectImg)}
+                            alt=""
+                            class="mx-auto"
+                        />
+                    {/if}
+                </div>
+                {#each bottomFixFormData.formList as form, idx}
+                    {#if form.type == "name"}
+                        <NameInput
+                            bind:val={customerName}
+                            require={form.require}
+                        />
+                        <div class="my-3"></div>
+                    {:else if form.type == "phone"}
+                        <PhoneInput
+                            bind:val1={phone1}
+                            bind:val2={phone2}
+                            bind:val3={phone3}
+                            require={form.require}
+                        />
+                        <div class="my-3"></div>
+                    {:else if form.type == "date"}
+                        <DateInput
+                            bind:setDate={formDate}
+                            require={form.require}
+                        />
+                        <div class="my-3"></div>
+                    {:else if form.type == "datetime"}
+                        <DateTimeInput
+                            bind:setDate={formDate}
+                            bind:setTime={formTime}
+                            require={form.require}
+                        />
+                        <div class="my-3"></div>
+                    {:else if form.type == "memo"}
+                        <MemoInput
+                            word={form.word}
+                            bind:val={memos[idx]}
+                            require={form.require}
+                        />
+                        <div class="my-3"></div>
+                    {/if}
+                {/each}
+
+                <div class="flex justify-between items-center my-5">
+                    <div>
+                        <label>
+                            <input
+                                type="checkbox"
+                                class="checkbox checkbox-sm mr-1"
+                                bind:checked={inviteChk}
+                            />
+                            <span>개인정보 보호동의</span>
+                        </label>
+                    </div>
+                    <div>
+                        <button
+                            class=" cursor-pointer"
+                            onclick={() => {
+                                modalOpen = true;
+                            }}
+                        >
+                            [보기]
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3 text-sm">
+                    {#each bottomFixFormData.formAgreeAddWord as agreeWord}
+                        <p>{agreeWord}</p>
+                    {/each}
+                </div>
+
+                {#if bottomFixFormData.formButtonType == "text"}
+                    <button
+                        class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
+                        onclick={formUpdate}
+                    >
+                        {bottomFixFormData.formButtonText}
+                    </button>
+                {:else}
+                    <button onclick={formUpdate}>
+                        <img
+                            src={setImg(bottomFixFormData.formButtonImg)}
+                            alt=""
+                            class="mx-auto"
+                        />
+                    </button>
+                {/if}
+            </div>
+        </div>
     </div>
 {/if}
 

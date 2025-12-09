@@ -79,17 +79,17 @@
         const dataId = this.getAttribute("data-id");
         const delPath = _find(imgArr, { id: dataId }).src;
         try {
+            const getImgArrIndx = imgArr.findIndex((img) => img.id === dataId);
+            imgArr.splice(getImgArrIndx, 1);
+
+            updateImgeList(imgArr);
+
             const res = await axios.post(
                 `${back_api_sub}/image/delete_gcs_img`,
                 {
                     delPath,
                 },
             );
-
-            const getImgArrIndx = imgArr.findIndex((img) => img.id === dataId);
-            imgArr.splice(getImgArrIndx, 1);
-            
-            updateImgeList(imgArr);
         } catch (error) {
             console.error(error.message);
             alert("에러가 발생했습니다. 다시 시도해주세요");

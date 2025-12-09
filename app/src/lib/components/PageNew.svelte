@@ -11,11 +11,12 @@
 
     import Modal from "$lib/components/Modal.svelte";
 
+    import NameInput from "$lib/components/form-list/NameInput.svelte";
+    import PhoneInput from "$lib/components/form-list/PhoneInput.svelte";
     import DateInput from "$lib/components/form-list/DateInput.svelte";
     import DateTimeInput from "$lib/components/form-list/DateTimeInput.svelte";
     import MemoInput from "$lib/components/form-list/MemoInput.svelte";
-    import NameInput from "$lib/components/form-list/NameInput.svelte";
-    import PhoneInput from "$lib/components/form-list/PhoneInput.svelte";
+
     import PreForm from "$lib/components/PreForm.svelte";
 
     import moment from "moment-timezone";
@@ -27,7 +28,6 @@
     let standbyContentList = $state([]);
     let x = $state(0);
     let y = $state(0);
-    let eventEle = $state();
 
     let observer;
     let elementsToObserve;
@@ -38,7 +38,7 @@
     let loading = $state(true);
     let hasSectionFormList = $state([]);
 
-    let eventEleForm = $state([]);
+
 
     // 구, 신버전 공통
     let customerName = $state("");
@@ -116,8 +116,6 @@
             }
         });
 
-        console.log(mainContents);
-
         hasSectionFormList = mainContents
             .flatMap((item) => item.contentList)
             .flatMap((con) => con.formList ?? [])
@@ -160,24 +158,7 @@
         }
     }
 
-    function moveForm() {
-        if (browser) {
-            let y;
-            if (hasSectionFormList.length > 0) {
-                const resultEle = eventEleForm.filter(Boolean).at(-1);
-                y =
-                    resultEle.getBoundingClientRect().top +
-                    window.pageYOffset -
-                    150;
-            } else {
-                y =
-                    eventEle.getBoundingClientRect().top +
-                    window.pageYOffset -
-                    150;
-            }
-            window.scrollTo({ top: y, behavior: "smooth" });
-        }
-    }
+    
 
     async function formUpdate(e) {
         e.preventDefault();
@@ -322,12 +303,6 @@
 
             alert("에러가 발생했습니다. 관리자에게 문의해주세요");
         }
-
-        // if (resSend) {
-        //     customerName = "";
-        //     customerPhone = "";
-        //     inviteChk = false;
-        // }
     }
 
     function findFormByType(arr, type) {
@@ -457,15 +432,14 @@
                             </div>
                         {/if}
                     {/each}
-                {:else if content.formList}
+                {:else if content.formList && content.fixedBottom != "fixed"}
                     <div
                         class="gap-1 md:flex md:justify-center md:items-center"
                     >
                         <!-- 문자 고정 이미지 -->
                         {#if content.formInviteImg}
                             <div
-                                class="w-full md:w-1/2"
-                                bind:this={eventEleForm[idx]}
+                                class="w-full md:w-1/2 event-ele"
                             >
                                 <a href="/sms" data-sveltekit-reload>
                                     <img
@@ -477,7 +451,7 @@
                         {/if}
 
                         <div
-                            class="border border-gray-400 mt-7 md:mt-0 w-full md:w-1/2 mx-auto rounded-lg p-5"
+                            class="border border-gray-400 mt-7 md:mt-0 w-full md:w-1/2 mx-auto rounded-lg p-5 form-ele"
                         >
                             <div class="mb-5">
                                 {#if content.formInviteType == "text"}
@@ -595,17 +569,16 @@
     {#if !loading && hasSectionFormList.length == 0}
         <div
             class="max-w-[860px] mx-auto md:flex md:justify-center md:items-center"
-            bind:this={eventEle}
         >
             {#if siteData.ld_event_img}
-                <div class="md:w-1/2">
+                <div class="md:w-1/2 event-ele">
                     <a href="/sms" data-sveltekit-reload>
                         <img src={setImg(siteData["ld_event_img"])} alt="" />
                     </a>
                 </div>
             {/if}
 
-            <div class="md:w-1/2 md:px-5 suit-font flex items-stretch">
+            <div class="md:w-1/2 md:px-5 suit-font flex items-stretch form-ele">
                 <div
                     class="w-full p-5 flex flex-col justify-center gap-8 rounded-md"
                     style="background-color: #f7f4ec !important;"
@@ -741,80 +714,9 @@
     {/if}
 </div>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="fixed bottom-0 left-0 w-full z-999 block md:hidden">
-    <div class="flex">
-        {#if siteData.ld_phone_num && siteData["ld_mobile_bt_phone_img"]}
-            <a href="/tel" data-sveltekit-reload>
-                {#if siteData.ld_mobile_bt_phone_img}
-                    <div>
-                        <img
-                            src={siteData["ld_mobile_bt_phone_img"].includes(
-                                "http",
-                            )
-                                ? siteData["ld_mobile_bt_phone_img"]
-                                : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
-                            alt=""
-                        />
-                    </div>
-                {:else}
-                    <div>
-                        <img src="/bottom-fix/left-phone.jpg" alt="" />
-                    </div>
-                {/if}
-            </a>
-        {:else}
-            <a href="/tel" data-sveltekit-reload>
-                {#if siteData.ld_mobile_bt_phone_img}
-                    <div>
-                        <img
-                            src={siteData["ld_mobile_bt_phone_img"].includes(
-                                "http",
-                            )
-                                ? siteData["ld_mobile_bt_phone_img"]
-                                : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
-                            alt=""
-                        />
-                    </div>
-                {:else}
-                    <div>
-                        <img src="/bottom-fix/left-phone.jpg" alt="" />
-                    </div>
-                {/if}
-            </a>
-        {/if}
 
-        <div class="cursor-pointer" onclick={moveForm}>
-            {#if siteData.ld_mobile_bt_event_img}
-                <img
-                    src={siteData["ld_mobile_bt_event_img"].includes("http")
-                        ? siteData["ld_mobile_bt_event_img"]
-                        : `${back_api_origin}${siteData["ld_mobile_bt_event_img"]}`}
-                    alt=""
-                />
-            {:else}
-                <img src="/bottom-fix/right-form.jpg" alt="" />
-            {/if}
-        </div>
-    </div>
-</div>
 
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- 우측 고정 버튼 -->
-<div
-    class="fixed bottom-16 md:bottom-1/3 right-5 z-999 cursor-pointer"
-    onclick={moveForm}
->
-    <div class="w-20 md:w-24 animate-pulse rounded-full overflow-hidden">
-        {#if siteData.ld_invite_image}
-            <img src={setImg(siteData.ld_invite_image)} alt="" />
-        {:else}
-            <img src="/move-icon.png" alt="" />
-        {/if}
-    </div>
-</div>
+
 
 <style>
     /* 신버전 CSS */

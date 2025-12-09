@@ -14,6 +14,8 @@
     // 신버전 변수!!!
     let headerData = $state({});
     let menuData = $state({});
+    let mainData = $state({}); // 폼이 있을 경우에 사용하기 위한 임시 변수
+
     let mainPageMarginTop = $state(0);
     let screenWidth = $state("860px");
     let callImgWidth = $state(0);
@@ -32,8 +34,6 @@
     let isMenuVisible = $state(true);
 
     onMount(async () => {
-        console.log();
-
         try {
             if (siteData.ld_json_header) {
                 headerData = JSON.parse(siteData.ld_json_header);
@@ -42,6 +42,8 @@
             if (siteData.ld_json_menus) {
                 menuData = JSON.parse(siteData.ld_json_menus);
             }
+
+            
         } catch (error) {
             console.error("JSON 파싱 오류:", error);
         }

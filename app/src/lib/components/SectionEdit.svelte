@@ -355,6 +355,10 @@
         if (!contentObj["formButtonType"]) {
             contentObj["formButtonType"] = "image";
         }
+
+        if (!contentObj["fixedBottom"]) {
+            contentObj["fixedBottom"] = "nonfixed";
+        }
     }
 
     function formTabOut() {
@@ -1413,6 +1417,68 @@
                             <div class="w-[90%] md:w-2/3 mx-auto">
                                 <table class="w-full">
                                     <tbody>
+                                        <tr>
+                                            <th class="in-th text-xs max-w-1/3">
+                                                <p>폼 하단 고정 여부</p>
+                                            </th>
+                                            <td class="in-th">
+                                                <div
+                                                    class="flex justify-center items-center gap-5"
+                                                >
+                                                    <label
+                                                        class="flex justify-center items-center"
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            class="radio radio-primary radio-sm"
+                                                            value="fixed"
+                                                            bind:group={
+                                                                contentObj[
+                                                                    "fixedBottom"
+                                                                ]
+                                                            }
+                                                        />
+                                                        <span class="ml-1.5">
+                                                            고정
+                                                        </span>
+                                                    </label>
+
+                                                    <label
+                                                        class="flex justify-center items-center"
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            class="radio radio-primary radio-sm"
+                                                            value="nonfixed"
+                                                            bind:group={
+                                                                contentObj[
+                                                                    "fixedBottom"
+                                                                ]
+                                                            }
+                                                        />
+                                                        <span class="ml-1.5">
+                                                            비고정
+                                                        </span>
+                                                    </label>
+                                                </div>
+
+                                                {#if contentObj["fixedBottom"] == "fixed"}
+                                                    <div class="text-xs mt-3">
+                                                        <p>
+                                                            ★ 하단 고정 폼일경우
+                                                            섹션 전체가 하단에
+                                                            고정됩니다.
+                                                        </p>
+                                                        <p>
+                                                            가급적 마지막 섹션 /
+                                                            폼 컨텐츠만
+                                                            넣어주세요.
+                                                        </p>
+                                                    </div>
+                                                {/if}
+                                            </td>
+                                        </tr>
+
                                         <tr>
                                             <th class="in-th text-xs max-w-1/3">
                                                 <p>※ 이벤트 (문자) 이미지</p>
