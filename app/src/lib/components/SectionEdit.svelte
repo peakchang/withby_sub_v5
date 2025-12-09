@@ -11,6 +11,8 @@
     import { toast } from "$lib/store.js";
     import moment from "moment-timezone";
 
+    import { setImg } from "$lib/lib";
+
     let { getDomain, closeModal, sectionUpdate, sectionObj } = $props();
 
     // let sectionObj = $state({ contentList: [] }); // 각 섹션을 보여줌! contentList 에는 배열 요소로 contentObj 가 들어가야함!
@@ -525,22 +527,12 @@
                                     이미지 :
 
                                     <div class="m-2 p-2 bg-gray-400">
-                                        {#if content.imgPath.includes("http")}
-                                            <img
-                                                src={content.imgPath}
-                                                alt=""
-                                                width="150"
-                                                height="150"
-                                            />
-                                            <!-- `${back_api_origin}${content.imgPath}` -->
-                                        {:else}
-                                            <img
-                                                src={`${gcs_img}/${content.imgPath}`}
-                                                alt=""
-                                                width="150"
-                                                height="150"
-                                            />
-                                        {/if}
+                                        <img
+                                            src={setImg(content.imgPath)}
+                                            alt=""
+                                            width="150"
+                                            height="150"
+                                        />
                                     </div>
 
                                     <span>가로값 : {content.width}</span> /

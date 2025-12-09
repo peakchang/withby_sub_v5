@@ -7,9 +7,11 @@
     import {
         back_api,
         back_api_origin,
+        back_api_sub,
         gcs_img,
         consentInfo,
     } from "$lib/const";
+
     // 메뉴 이미지용 (다중 선택 가능)
     import SortableImgMovie from "$lib/components/SortableImgMovie.svelte";
 
@@ -217,8 +219,6 @@
         }
     }
 
-    function logoUpdate() {}
-
     function updateImgArr(imgArr, idx) {
         const imgList = imgArr.map((e) => e.src);
         menuObj.menus[idx]["imgArr"] = imgList;
@@ -258,32 +258,34 @@
 
         // 섹션 삭제시 섹션 내 이미지가 있으면 전부 삭제 GOGO!!! deleteImgArr 에 backgroundImg / contentList 돌면서 imgPath 있으면 넣기
 
-        const deleteImgArrTemp = [];
-        if (mainContents[sectionIdx]["backgroundImg"]) {
-            deleteImgArrTemp.push(mainContents[sectionIdx]["backgroundImg"]);
-        }
+        console.log(mainContents[sectionIdx]);
 
-        for (
-            let i = 0;
-            i < mainContents[sectionIdx]["contentList"].length;
-            i++
-        ) {
-            const data = mainContents[sectionIdx]["contentList"][i];
-            if (data["imgPath"]) {
-                deleteImgArrTemp.push(data["imgPath"]);
-            }
-        }
+        const deleteImgArr = [];
 
-        if (deleteImgArrTemp.length > 0) {
-            const deleteImgArr = deleteImgArrTemp.map((e) => {
-                const imgUrlArr = e.split("/");
-                return `subuploads/img/${imgUrlArr[4]}/${imgUrlArr[5]}`;
-            });
+        const section = mainContents[sectionIdx];
+
+        // 배경 이미지 추가
+        section.backgroundImg && deleteImgArr.push(section.backgroundImg);
+
+        // 컨텐츠 내부 이미지 추가 (단일 이미지 : imgPath / 다중 이미지 : imgList)
+        section.contentList.forEach((d) => {
+            d.imgPath && deleteImgArr.push(d.imgPath);
+            d.imgList?.forEach((img) => deleteImgArr.push(img.url));
+        });
+
+        if (deleteImgArr.length > 0) {
+            console.log(deleteImgArr);
+
+            console.log("이제 삭제 고고!!!");
+            console.log(`${back_api_sub}/image/delete_gcs_img_many`);
 
             try {
-                const res = await axios.post(`${back_api}/delete_many_image`, {
-                    deleteImgArr,
-                });
+                const res = await axios.post(
+                    `${back_api_sub}/image/delete_gcs_img_many`,
+                    {
+                        delImgList: deleteImgArr,
+                    },
+                );
             } catch (error) {}
         }
 
@@ -302,8 +304,6 @@
     function contentImageUpload(e) {
         contentObj["imgPath"] = e.detail.imgPath;
     }
-
-    function topPhoneUpdate() {}
 
     async function backgroundImageUpload(e) {
         sectionObj["backgroundImg"] = e.detail.imgPath;
@@ -339,6 +339,28 @@
         eModelType = "";
         eModelLink = "";
     }
+
+    async function copySite() {
+        if (!copyDomain) {
+            alert("복사할 도메인을 입력 해주세요");
+            return;
+        }
+
+        try {
+            const res = await axios.post(`${back_api}/copy_site`, {
+                oldDomain: getDomain,
+                copyDomain,
+            });
+
+            alert("복사 완료! 관리자 페이지에서 확인 해주세요!");
+        } catch (err) {
+            console.log("에러 들어와야징");
+
+            const m = err.response.data.message;
+            alert(m ? m : "사이트 카피 실패 다시 시도해주세요.");
+        }
+        siteCopyAreaShow = false;
+    }
 </script>
 
 <!-- svelte-ignore event_directive_deprecated -->
@@ -355,10 +377,10 @@
 
 <!-- svelte-ignore event_directive_deprecated -->
 
-<div class="fixed top-11 w-full">
-    <div class="max-w-[900px] mx-auto flex justify-end">
+<div class="fixed top-11 right-1/12 lg:right-1/9 xl:right-1/6 w-[200px]">
+    <div class="mx-auto flex justify-end">
         <div
-            class=" bg-white w-[200px] text-center p-3 border border-gray-300 rounded-md"
+            class=" bg-white text-center p-3 border border-gray-300 rounded-md"
         >
             <button class="btn btn-primary btn-sm" on:click={updateSiteSet}>
                 작업 업로드
@@ -399,18 +421,20 @@
 
         {#if siteCopyAreaShow}
             <div
-                class="w-[350px] border mt-3 flex justify-between items-center p-3"
+                class="w-[350px] border border-gray-400 mt-3 flex justify-between items-center p-3"
             >
-                <div>
+                <div class="w-full">
                     <input
                         type="text"
-                        class="border w-[250px] px-2 py-1.5 text-xs focus:outline-none focus:border-blue-500 rounded-md"
+                        class="input-base text-xs w-full"
                         placeholder="도메인주소를 입력하세요 (영어 소문자/숫자만)"
+                        bind:value={copyDomain}
                     />
                 </div>
                 <div class="w-[100px] text-center">
                     <button
                         class="text-sm bg-lime-700 text-white px-4 py-1.5 active:bg-lime-800 rounded-lg"
+                        on:click={copySite}
                     >
                         적용
                     </button>
