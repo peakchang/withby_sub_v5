@@ -1,7 +1,7 @@
 <script>
     import moment from "moment-timezone";
 
-    let { setDate = $bindable(), require } = $props();
+    let { setDate = $bindable(), require, word } = $props();
 
     let dateInput;
 
@@ -17,8 +17,8 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="input-wrapper" class:focusin={inputFocused}>
-    <div class="border-r border-gray-300 w-1/5 text-center">
-        <span>날짜</span>
+    <div class="border-r border-gray-300 w-1/5 text-center text-sm">
+        <span>{word ? word : "상담 날짜"}</span>
         {#if require}
             <span>*</span>
         {/if}
@@ -70,8 +70,7 @@
         padding-right: 0.75rem;
 
         font-size: 1rem; /* text-base */
-
-        max-width: 42rem; /* max-w-2xl */
+        width: 100%;
         margin-left: auto; /* mx-auto */
         margin-right: auto;
     }

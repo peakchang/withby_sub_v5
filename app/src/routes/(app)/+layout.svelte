@@ -366,11 +366,15 @@
 {/if}
 
 {#if bottomFixFormData}
-    <div class="max-w-[860px] mx-auto">
-        <div class="gap-1 md:flex md:justify-center md:items-center">
+    <div
+        class="max-w-[860px] mx-auto {siteData.ld_font
+            ? siteData.ld_font
+            : 'pretendard'}"
+    >
+        <div class="">
             <!-- 문자 고정 이미지 -->
             {#if bottomFixFormData.formInviteImg}
-                <div class="w-full md:w-1/2 event-ele">
+                <div class="w-full event-ele">
                     <a href="/sms" data-sveltekit-reload>
                         <img
                             src={setImg(bottomFixFormData.formInviteImg)}
@@ -380,9 +384,7 @@
                 </div>
             {/if}
 
-            <div
-                class="border border-gray-400 mt-7 md:mt-0 w-full md:w-1/2 mx-auto rounded-lg p-5 form-ele"
-            >
+            <div class="form-box form-ele">
                 <div class="mb-5">
                     {#if bottomFixFormData.formInviteType == "text"}
                         <div
@@ -399,43 +401,43 @@
                         />
                     {/if}
                 </div>
-                {#each bottomFixFormData.formList as form, idx}
-                    {#if form.type == "name"}
-                        <NameInput
-                            bind:val={customerName}
-                            require={form.require}
-                        />
-                        <div class="my-3"></div>
-                    {:else if form.type == "phone"}
-                        <PhoneInput
-                            bind:val1={phone1}
-                            bind:val2={phone2}
-                            bind:val3={phone3}
-                            require={form.require}
-                        />
-                        <div class="my-3"></div>
-                    {:else if form.type == "date"}
-                        <DateInput
-                            bind:setDate={formDate}
-                            require={form.require}
-                        />
-                        <div class="my-3"></div>
-                    {:else if form.type == "datetime"}
-                        <DateTimeInput
-                            bind:setDate={formDate}
-                            bind:setTime={formTime}
-                            require={form.require}
-                        />
-                        <div class="my-3"></div>
-                    {:else if form.type == "memo"}
-                        <MemoInput
-                            word={form.word}
-                            bind:val={memos[idx]}
-                            require={form.require}
-                        />
-                        <div class="my-3"></div>
-                    {/if}
-                {/each}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {#each bottomFixFormData.formList as form, idx}
+                        {#if form.type == "name"}
+                            <NameInput
+                                bind:val={customerName}
+                                require={form.require}
+                            />
+                        {:else if form.type == "phone"}
+                            <PhoneInput
+                                bind:val1={phone1}
+                                bind:val2={phone2}
+                                bind:val3={phone3}
+                                require={form.require}
+                            />
+                        {:else if form.type == "date"}
+                            <DateInput
+                                word={form.word}
+                                bind:setDate={formDate}
+                                require={form.require}
+                            />
+                        {:else if form.type == "datetime"}
+                            <DateTimeInput
+                                word={form.word}
+                                bind:setDate={formDate}
+                                bind:setTime={formTime}
+                                require={form.require}
+                            />
+                        {:else if form.type == "memo"}
+                            <MemoInput
+                                word={form.word}
+                                bind:val={memos[idx]}
+                                require={form.require}
+                            />
+                        {/if}
+                    {/each}
+                </div>
 
                 <div class="flex justify-between items-center my-5">
                     <div>
@@ -494,3 +496,25 @@
         {siteData.ld_footer}
     {/if}
 </div>
+
+<style>
+    .form-box {
+        border: 1px solid #9ca3af; /* border-gray-400 */
+        margin-top: 1.75rem; /* mt-7 */
+
+        width: 100%; /* w-full */
+        margin-left: auto; /* mx-auto */
+        margin-right: auto;
+
+        border-radius: 0.5rem; /* rounded-lg */
+
+        padding: 20px;
+    }
+
+    @media (min-width: 768px) {
+        .form-box {
+            margin-top: 0; /* md:mt-0 */
+            /* width: 50%; md:w-1/2 */
+        }
+    }
+</style>

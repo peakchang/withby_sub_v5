@@ -43,7 +43,7 @@
 
         font-size: 1rem; /* text-base */
 
-        max-width: 42rem; /* max-w-2xl */
+        width: 100%;
         margin-left: auto; /* mx-auto */
         margin-right: auto;
     }

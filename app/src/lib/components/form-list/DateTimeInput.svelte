@@ -1,11 +1,16 @@
 <script>
     import moment from "moment-timezone";
 
-    let { setDate = $bindable(), setTime = $bindable(), require } = $props();
+    let {
+        setDate = $bindable(),
+        setTime = $bindable(),
+        word,
+        require,
+    } = $props();
 
     let dateInput;
     let inputFocused = $state(false);
-    
+
     function openPicker() {
         dateInput.focus();
         dateInput.click();
@@ -21,7 +26,7 @@
     <div
         class="border-r border-gray-300 text-center text-sm whitespace-nowrap w-[25%]"
     >
-        <span>날짜 및 시간</span>
+        <span>{word ? word : "상담 날짜"}</span>
         {#if require}
             <span>*</span>
         {/if}
@@ -91,14 +96,14 @@
 
         overflow: hidden;
 
-        padding-top: 0.25rem; /* py-1 */
-        padding-bottom: 0.25rem;
+        padding-top: 0.5rem; /* py-1 */
+        padding-bottom: 0.5rem;
         padding-left: 0.75rem; /* px-3 */
         padding-right: 0.75rem;
 
         font-size: 1rem; /* text-base */
 
-        max-width: 42rem; /* max-w-2xl */
+        width: 100%;
         margin-left: auto; /* mx-auto */
         margin-right: auto;
     }

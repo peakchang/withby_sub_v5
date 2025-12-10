@@ -33,6 +33,7 @@
     let setDate = moment().format("YYYY-MM-DD");
 
     let memoFormWord = $state("");
+    let reserveFormWord = $state("");
     let formAgreeAddWord = $state("");
 
     // --------------------- 섹션 내 컨텐츠 관련 --------------------
@@ -281,6 +282,10 @@
         } else if (tempForm == "memo") {
             obj["type"] = tempForm;
             obj["word"] = memoFormWord;
+            obj["require"] = requireBool;
+        } else if (tempForm == "date" || tempForm == "datetime") {
+            obj["type"] = tempForm;
+            obj["word"] = reserveFormWord;
             obj["require"] = requireBool;
         } else {
             obj["type"] = tempForm;
@@ -1375,7 +1380,22 @@
                                     </div>
                                 {/if}
 
-                                <div class="mt-8">
+                                {#if tempForm == "date" || tempForm == "datetime"}
+                                    <div class="mt-3">
+                                        <div>
+                                            <span class="mr-2"
+                                                >예약 문구 :
+                                            </span>
+                                            <input
+                                                type="text"
+                                                class="input-base"
+                                                bind:value={reserveFormWord}
+                                            />
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                <div class="mt-8 max-w-xl mx-auto">
                                     {#each contentObj["formList"] as val}
                                         {#if val.type == "name"}
                                             <NameInput require={val.require} />
@@ -1385,12 +1405,14 @@
                                             <div class="my-2"></div>
                                         {:else if val.type == "date"}
                                             <DateInput
+                                                word={val.word}
                                                 {setDate}
                                                 require={val.require}
                                             />
                                             <div class="my-2"></div>
                                         {:else if val.type == "datetime"}
                                             <DateTimeInput
+                                                word={val.word}
                                                 {setDate}
                                                 require={val.require}
                                             />

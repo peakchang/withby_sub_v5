@@ -615,7 +615,11 @@
                         <OneImageUpload
                             imgPath={headerObj["logo_img"]}
                             sendImgPath={(e) => {
-                                headerObj["logo_img"] = e.imgPath;
+                                if (!e) {
+                                    headerObj["logo_img"] = e;
+                                } else {
+                                    headerObj["logo_img"] = e.imgPath;
+                                }
                             }}
                             domainFolder={getDomain}
                         />
@@ -633,7 +637,11 @@
                         <OneImageUpload
                             imgPath={headerObj["phone_img"]}
                             sendImgPath={(e) => {
-                                headerObj["phone_img"] = e.imgPath;
+                                if (!e) {
+                                    headerObj["phone_img"] = e;
+                                } else {
+                                    headerObj["phone_img"] = e.imgPath;
+                                }
                             }}
                             domainFolder={getDomain}
                         />
@@ -1008,7 +1016,14 @@
             <OneImageUpload
                 imgPath={siteData.ld_popup_img}
                 sendImgPath={(e) => {
-                    siteData.ld_popup_img = e.imgPath;
+                    if (!e) {
+                        // 이건 삭제시
+                        siteData.ld_popup_img = e;
+                    } else {
+                        siteData.ld_popup_img = e.imgPath;
+                    }
+
+                    console.log(siteData.ld_popup_img);
                 }}
                 domainFolder={getDomain}
             />
@@ -1025,7 +1040,13 @@
             <OneImageUpload
                 imgPath={siteData.ld_event_img}
                 sendImgPath={(e) => {
-                    siteData.ld_event_img = e.imgPath;
+                    if (!e) {
+                        // 이미지 삭제시
+                        siteData.ld_event_img = e;
+                    } else {
+                        // 이미지 업로드시
+                        siteData.ld_event_img = e.imgPath;
+                    }
                 }}
                 domainFolder={getDomain}
             />
@@ -1088,7 +1109,12 @@
                             <OneImageUpload
                                 imgPath={siteData.ld_mobile_bt_phone_img}
                                 sendImgPath={(e) => {
-                                    siteData.ld_mobile_bt_phone_img = e.imgPath;
+                                    if (!e) {
+                                        siteData.ld_mobile_bt_phone_img = e;
+                                    } else {
+                                        siteData.ld_mobile_bt_phone_img =
+                                            e.imgPath;
+                                    }
                                 }}
                                 domainFolder={getDomain}
                             />
@@ -1106,7 +1132,12 @@
                             <OneImageUpload
                                 imgPath={siteData.ld_mobile_bt_event_img}
                                 sendImgPath={(e) => {
-                                    siteData.ld_mobile_bt_event_img = e.imgPath;
+                                    if (!e) {
+                                        siteData.ld_mobile_bt_event_img = e;
+                                    } else {
+                                        siteData.ld_mobile_bt_event_img =
+                                            e.imgPath;
+                                    }
                                 }}
                                 domainFolder={getDomain}
                             />
@@ -1247,7 +1278,11 @@
                             <OneImageUpload
                                 imgPath={siteData.ld_card_image}
                                 sendImgPath={(e) => {
-                                    siteData.ld_card_image = e.imgPath;
+                                    if (!e) {
+                                        siteData.ld_card_image = e;
+                                    } else {
+                                        siteData.ld_card_image = e.imgPath;
+                                    }
                                 }}
                                 domainFolder={getDomain}
                             />
@@ -1260,7 +1295,11 @@
                             <OneImageUpload
                                 imgPath={siteData.ld_invite_image}
                                 sendImgPath={(e) => {
-                                    siteData.ld_invite_image = e.imgPath;
+                                    if (!e) {
+                                        siteData.ld_invite_image = e;
+                                    } else {
+                                        siteData.ld_invite_image = e.imgPath;
+                                    }
                                 }}
                                 domainFolder={getDomain}
                             />
