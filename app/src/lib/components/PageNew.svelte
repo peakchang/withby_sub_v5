@@ -432,11 +432,12 @@
                     <div class="gap-1 my-3">
                         <!-- 문자 고정 이미지 -->
                         {#if content.formInviteImg}
-                            <div class="w-full event-ele">
+                            <div class="w-full event-ele mb-3">
                                 <a href="/sms" data-sveltekit-reload>
                                     <img
                                         src={setImg(content.formInviteImg)}
                                         alt=""
+                                        class="mx-auto"
                                     />
                                 </a>
                             </div>

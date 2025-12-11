@@ -375,11 +375,12 @@
         <div class="">
             <!-- 문자 고정 이미지 -->
             {#if bottomFixFormData.formInviteImg}
-                <div class="w-full event-ele">
+                <div class="w-full event-ele mb-3">
                     <a href="/sms" data-sveltekit-reload>
                         <img
                             src={setImg(bottomFixFormData.formInviteImg)}
                             alt=""
+                            class="mx-auto"
                         />
                     </a>
                 </div>
