@@ -530,22 +530,24 @@
                                 {/each}
                             </div>
 
-                            {#if content.formButtonType == "text"}
-                                <button
-                                    class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
-                                    onclick={formUpdate}
-                                >
-                                    {content.formButtonText}
-                                </button>
-                            {:else}
-                                <button onclick={formUpdate}>
-                                    <img
-                                        src={setImg(content.formButtonImg)}
-                                        alt=""
-                                        class="mx-auto"
-                                    />
-                                </button>
-                            {/if}
+                            <div class="text-center">
+                                {#if content.formButtonType == "text"}
+                                    <button
+                                        class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
+                                        onclick={formUpdate}
+                                    >
+                                        {content.formButtonText}
+                                    </button>
+                                {:else}
+                                    <button onclick={formUpdate}>
+                                        <img
+                                            src={setImg(content.formButtonImg)}
+                                            alt=""
+                                            class="mx-auto"
+                                        />
+                                    </button>
+                                {/if}
+                            </div>
                         </div>
                     </div>
                 {:else if content.marginHeight}

@@ -37,8 +37,6 @@ export const isEmptyObj = (obj) => {
         result = false;
     }
 
-
-
     return result;
 }
 
@@ -288,6 +286,23 @@ export function setImg(imgUrl) {
     return setImgUrl;
 }
 
+
+// 폼 체크 함수!! (formList 에서 요소들에 따라 require 값 return)
+// 필수 항목 값 체크를 위함!!
+export function checkFormRequired(list, typeName, word) {
+    return list.some((ele) => {
+        // type이 다르면 무조건 false
+        if (ele.type !== typeName) return false;
+
+        // word가 있으면 word까지 비교해야 함
+        if (word) {
+            return ele.word === word && ele.require === true;
+        }
+
+        // word가 없으면 type만 맞으면 require 값으로 판단
+        return ele.require === true;
+    });
+}
 
 // export const goToBoardViewAddCount = async (data: any) => {
 //     try {
