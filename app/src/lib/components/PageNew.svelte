@@ -263,10 +263,10 @@
             }
         }
 
-        // if (!inviteChk && siteData.ld_personal_info_view == "on") {
-        //     alert("개인정보 보호동의에 체크해주셔야 합니다.");
-        //     return;
-        // }
+        if (!inviteChk && siteData.ld_personal_info_view == "on") {
+            alert("개인정보 보호동의에 체크해주셔야 합니다.");
+            return;
+        }
 
         if (!validatePhoneNumber(customerPhone)) {
             alert("정상적인 휴대폰 번호만 가능합니다.");

@@ -468,22 +468,24 @@
                     {/each}
                 </div>
 
-                {#if bottomFixFormData.formButtonType == "text"}
-                    <button
-                        class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
-                        onclick={formUpdate}
-                    >
-                        {bottomFixFormData.formButtonText}
-                    </button>
-                {:else}
-                    <button onclick={formUpdate}>
-                        <img
-                            src={setImg(bottomFixFormData.formButtonImg)}
-                            alt=""
-                            class="mx-auto"
-                        />
-                    </button>
-                {/if}
+                <div class="text-center">
+                    {#if bottomFixFormData.formButtonType == "text"}
+                        <button
+                            class="w-full bg-[#ff5f11] text-white p-3 text-lg rounded-lg cursor-pointer"
+                            onclick={formUpdate}
+                        >
+                            {bottomFixFormData.formButtonText}
+                        </button>
+                    {:else}
+                        <button onclick={formUpdate}>
+                            <img
+                                src={setImg(bottomFixFormData.formButtonImg)}
+                                alt=""
+                                class="mx-auto"
+                            />
+                        </button>
+                    {/if}
+                </div>
             </div>
         </div>
     </div>
