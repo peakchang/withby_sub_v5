@@ -73,7 +73,7 @@
                     for (let j = 0; j < mdata.contentList.length; j++) {
                         if (
                             mdata.contentList[j]["formList"] &&
-                            mdata.contentList[j]["fixedBottom"]
+                            mdata.contentList[j]["fixedBottom"] == "fixed"
                         ) {
                             bottomFixFormData = mdata.contentList[j];
                             console.log(bottomFixFormData);
