@@ -294,7 +294,6 @@
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="fixed bottom-0 left-0 w-full z-999 block md:hidden">
-        <span>고정!</span>
         <div class="flex">
             {#if siteData.ld_phone_num && siteData["ld_mobile_bt_phone_img"]}
                 <a href="/tel" data-sveltekit-reload>
