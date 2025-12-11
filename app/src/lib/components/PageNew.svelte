@@ -118,6 +118,9 @@
             .flatMap((item) => item.contentList)
             .flatMap((con) => con.formList ?? [])
             .map((f) => ({ type: f.type, word: f.word, require: f.require }));
+
+        console.log(hasSectionFormList);
+        
     });
 
     $effect(() => {});
