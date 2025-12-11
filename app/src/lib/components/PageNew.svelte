@@ -263,10 +263,10 @@
             }
         }
 
-        if (!inviteChk && siteData.ld_personal_info_view == "on") {
-            alert("개인정보 보호동의에 체크해주셔야 합니다.");
-            return;
-        }
+        // if (!inviteChk && siteData.ld_personal_info_view == "on") {
+        //     alert("개인정보 보호동의에 체크해주셔야 합니다.");
+        //     return;
+        // }
 
         if (!validatePhoneNumber(customerPhone)) {
             alert("정상적인 휴대폰 번호만 가능합니다.");
@@ -497,28 +497,32 @@
                                 {/each}
                             </div>
 
-                            <div class="flex justify-between items-center my-5">
-                                <div>
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            class="checkbox checkbox-sm mr-1"
-                                            bind:checked={inviteChk}
-                                        />
-                                        <span>개인정보 보호동의</span>
-                                    </label>
+                            {#if !content.formAgree || content.formAgree == "use"}
+                                <div
+                                    class="flex justify-between items-center my-5"
+                                >
+                                    <div>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                class="checkbox checkbox-sm mr-1"
+                                                bind:checked={inviteChk}
+                                            />
+                                            <span>개인정보 보호동의</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <button
+                                            class=" cursor-pointer"
+                                            onclick={() => {
+                                                modalOpen = true;
+                                            }}
+                                        >
+                                            [보기]
+                                        </button>
+                                    </div>
                                 </div>
-                                <div>
-                                    <button
-                                        class=" cursor-pointer"
-                                        onclick={() => {
-                                            modalOpen = true;
-                                        }}
-                                    >
-                                        [보기]
-                                    </button>
-                                </div>
-                            </div>
+                            {/if}
 
                             <div class="mb-3 text-sm">
                                 {#each content.formAgreeAddWord as agreeWord}

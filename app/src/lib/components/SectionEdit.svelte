@@ -366,6 +366,10 @@
         if (!contentObj["fixedBottom"]) {
             contentObj["fixedBottom"] = "nonfixed";
         }
+
+        if (!contentObj["formAgree"]) {
+            contentObj["formAgree"] = "use";
+        }
     }
 
     function formTabOut() {
@@ -1528,7 +1532,7 @@
                                                     <label>
                                                         <input
                                                             type="radio"
-                                                            class="radio radio-info radio-sm"
+                                                            class="radio radio-info radio-xs"
                                                             value="image"
                                                             bind:group={
                                                                 contentObj[
@@ -1544,7 +1548,7 @@
                                                     <label>
                                                         <input
                                                             type="radio"
-                                                            class="radio radio-info radio-sm"
+                                                            class="radio radio-info radio-xs"
                                                             value="text"
                                                             bind:group={
                                                                 contentObj[
@@ -1591,6 +1595,37 @@
                                         <tr>
                                             <th class="in-th text-sm">
                                                 <p>개인정보 보호동의</p>
+                                                <div
+                                                    class="flex justify-center items-center gap-3 mt-3"
+                                                >
+                                                    <label>
+                                                        <input
+                                                            type="radio"
+                                                            class="radio radio-info radio-xs"
+                                                            value="use"
+                                                            bind:group={
+                                                                contentObj[
+                                                                    "formAgree"
+                                                                ]
+                                                            }
+                                                        />
+                                                        <span>사용</span>
+                                                    </label>
+
+                                                    <label>
+                                                        <input
+                                                            type="radio"
+                                                            class="radio radio-info radio-xs"
+                                                            value="notuse"
+                                                            bind:group={
+                                                                contentObj[
+                                                                    "formAgree"
+                                                                ]
+                                                            }
+                                                        />
+                                                        <span>미사용</span>
+                                                    </label>
+                                                </div>
                                             </th>
                                             <td class="in-th">
                                                 <input
