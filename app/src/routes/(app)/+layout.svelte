@@ -299,35 +299,10 @@
             {#if siteData.ld_phone_num && siteData["ld_mobile_bt_phone_img"]}
                 <a href="/tel" data-sveltekit-reload>
                     {#if siteData.ld_mobile_bt_phone_img}
-                        <div>
-                            <img
-                                src={siteData[
-                                    "ld_mobile_bt_phone_img"
-                                ].includes("http")
-                                    ? siteData["ld_mobile_bt_phone_img"]
-                                    : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
-                                alt=""
-                            />
-                        </div>
-                    {:else}
-                        <div>
-                            <img src="/bottom-fix/left-phone.jpg" alt="" />
-                        </div>
-                    {/if}
-                </a>
-            {:else}
-                <a href="/tel" data-sveltekit-reload>
-                    {#if siteData.ld_mobile_bt_phone_img}
-                        <div>
-                            <img
-                                src={siteData[
-                                    "ld_mobile_bt_phone_img"
-                                ].includes("http")
-                                    ? siteData["ld_mobile_bt_phone_img"]
-                                    : `${back_api_origin}${siteData["ld_mobile_bt_phone_img"]}`}
-                                alt=""
-                            />
-                        </div>
+                        <img
+                            src={setImg(siteData["ld_mobile_bt_phone_img"])}
+                            alt=""
+                        />
                     {:else}
                         <div>
                             <img src="/bottom-fix/left-phone.jpg" alt="" />
@@ -339,9 +314,7 @@
             <div class="cursor-pointer" onclick={moveForm}>
                 {#if siteData.ld_mobile_bt_event_img}
                     <img
-                        src={siteData["ld_mobile_bt_event_img"].includes("http")
-                            ? siteData["ld_mobile_bt_event_img"]
-                            : `${back_api_origin}${siteData["ld_mobile_bt_event_img"]}`}
+                        src={setImg(siteData["ld_mobile_bt_event_img"])}
                         alt=""
                     />
                 {:else}
