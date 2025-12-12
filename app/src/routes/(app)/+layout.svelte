@@ -207,6 +207,9 @@
                     case verifyFormChk.type.includes("memo"):
                         formVal[`${verifyFormChk.type}`] =
                             $formObj[`${verifyFormChk.type}`];
+
+                        formVal[`${verifyFormChk.type}_q`] =
+                            verifyFormChk["word"];
                         break;
                 }
             }

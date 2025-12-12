@@ -267,10 +267,15 @@
                     case verifyFormChk.type.includes("memo"):
                         formVal[`${verifyFormChk.type}`] =
                             $formObj[`${verifyFormChk.type}`];
+
+                        formVal[`${verifyFormChk.type}_q`] =
+                            verifyFormChk["word"];
                         break;
                 }
             }
             formVal["siteName"] = siteName;
+
+            console.log(formVal);
         }
 
         console.log("통과?");
