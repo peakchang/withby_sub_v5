@@ -1,5 +1,5 @@
 <script>
-    let { val = $bindable(), require } = $props();
+    let { val = $bindable(), require, form, focusAct } = $props();
     let inputFocused = $state(false);
 </script>
 
@@ -18,6 +18,7 @@
             bind:value={val}
             onfocusin={() => {
                 inputFocused = true;
+                focusAct(form);
             }}
             onfocusout={() => {
                 inputFocused = false;

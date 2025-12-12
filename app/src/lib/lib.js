@@ -304,6 +304,17 @@ export function checkFormRequired(list, typeName, word) {
     });
 }
 
+
+export function isSameArrayKeys(a, b) {
+        if (a.length !== b.length) return false;
+
+        return a.every((obj, idx) => {
+            const keysA = Object.keys(obj).sort();
+            const keysB = Object.keys(b[idx]).sort();
+            return JSON.stringify(keysA) === JSON.stringify(keysB);
+        });
+    }
+
 // export const goToBoardViewAddCount = async (data: any) => {
 //     try {
 //         await axios.post(`${back_api}/board/plus_view_count`, {

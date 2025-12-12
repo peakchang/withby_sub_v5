@@ -2,6 +2,19 @@
     import { onMount } from "svelte";
 
     import { browser } from "$app/environment";
+    import {
+        formObj,
+        getFormList,
+        customerName,
+        customerPhone,
+        phone1,
+        phone2,
+        phone3,
+        formDate,
+        formTime,
+        inviteChk,
+        formAgree,
+    } from "$lib/store.js";
 
     import LayoutOld from "$lib/components/LayoutOld.svelte";
     import OldForm from "$lib/components/OldForm.svelte";
@@ -22,6 +35,7 @@
         validatePhoneNumber,
         convertPrivacyTextToHtml,
         setImg,
+        isSameArrayKeys,
     } from "$lib/lib";
 
     import Cookies from "js-cookie";
@@ -39,14 +53,6 @@
 
     // 폼 관련 변수!!
     let bottomFixFormData = $state(null); // 하단 고정 폼 유무 및 데이터 정보 담기
-    let customerName = $state("");
-    let phone1 = $state("010");
-    let phone2 = $state("");
-    let phone3 = $state("");
-    let memos = $state([]);
-    let formDate = $state(moment().format("YYYY-MM-DD"));
-    let formTime = $state("base");
-    let inviteChk = $state(false);
 
     // 방문 기록은 공통으로 나오게 하기!!
     onMount(async () => {
@@ -103,104 +109,108 @@
         let formVal = {};
 
         // 구버전 폼 검사
-        if (hasSectionFormList.length == 0) {
-            if (!customerName) {
+        if (!bottomFixFormData) {
+            if (!$customerName) {
                 alert("성함을 입력 해주세요.");
                 return;
             }
-
-            if (!customerPhone) {
+            if (!$customerPhone) {
                 alert("전화번호를 입력 해주세요.");
+                return;
+            }
+            if (!validatePhoneNumber($customerPhone)) {
+                alert("정상적인 휴대폰 번호만 가능합니다.");
+                return false;
+            }
+
+            if ($inviteChk == false) {
+                alert("개인정보 보호동의에 체크해주셔야 합니다.");
                 return;
             }
 
             formVal = {
                 siteName: siteName,
-                name: customerName,
-                phone: customerPhone,
+                name: $customerName,
+                phone: $customerPhone,
             };
         } else {
-            customerPhone = phone1 + phone2 + phone3;
+            if ($getFormList.length == 0) {
+                alert("모든 항목이 비어 있습니다.");
+                return;
+            }
+            if ($phone2 && $phone3) {
+                $customerPhone = $phone1 + $phone2 + $phone3;
+            }
 
-            const nameRequireChk = findFormByType(hasSectionFormList, "name");
-
-            if (nameRequireChk && nameRequireChk.require == true) {
-                if (!customerName) {
-                    alert("성함을 입력 해주세요.");
+            for (let i = 0; i < $getFormList.length; i++) {
+                const verifyFormChk = $getFormList[i];
+                if (
+                    verifyFormChk.type == "name" &&
+                    verifyFormChk.require &&
+                    !$customerName
+                ) {
+                    alert("성함을 입력 해 주세요");
+                    return;
+                } else if (
+                    verifyFormChk.type == "name" &&
+                    verifyFormChk.require &&
+                    (!$customerPhone || $customerPhone == "010")
+                ) {
+                    alert("전화번호를 입력 해 주세요");
+                    return;
+                } else if (
+                    verifyFormChk.type == "date" &&
+                    verifyFormChk.require &&
+                    !$formDate
+                ) {
+                    alert("상담 받으실 날짜를 입력 해 주세요");
+                    return;
+                } else if (
+                    verifyFormChk.type == "date" &&
+                    verifyFormChk.require &&
+                    (!$formDate || $formTime == "base")
+                ) {
+                    alert("상담 받으실 날짜 및 시간을 입력 해 주세요");
+                    return;
+                } else if (
+                    verifyFormChk.type.includes("memo") &&
+                    verifyFormChk.require &&
+                    !$formObj[`${verifyFormChk.type}`]
+                ) {
+                    alert(`${verifyFormChk.word} 항목은 필수 입니다.`);
                     return;
                 }
-            }
 
-            const phoneRequireChk = findFormByType(hasSectionFormList, "phone");
+                if (!validatePhoneNumber($customerPhone)) {
+                    alert("정상적인 휴대폰 번호만 가능합니다.");
+                    return false;
+                }
 
-            if (phoneRequireChk.require) {
-                if (!customerPhone || customerPhone == "010") {
-                    alert("전화번호를 입력 해주세요.");
+                if ($formAgree == "use" && $inviteChk == false) {
+                    alert("개인정보 보호동의에 체크해주셔야 합니다.");
                     return;
                 }
-            }
 
-            const dateRequireChk = findFormByType(hasSectionFormList, "date");
-
-            if (dateRequireChk && dateRequireChk.require) {
-                if (!formDate) {
-                    alert("날짜를 입력 해 주세요.");
-                    return;
+                switch (true) {
+                    case verifyFormChk.type == "name":
+                        formVal["name"] = $customerName;
+                        break;
+                    case verifyFormChk.type == "phone":
+                        formVal["phone"] = $customerPhone;
+                        break;
+                    case verifyFormChk.type == "date":
+                        formVal["date"] = $formDate;
+                        break;
+                    case verifyFormChk.type == "time":
+                        formVal["time"] = $formTime;
+                        break;
+                    case verifyFormChk.type.includes("memo"):
+                        formVal[`${verifyFormChk.type}`] =
+                            $formObj[`${verifyFormChk.type}`];
+                        break;
                 }
             }
-
-            const dateTimeRequireChk = findFormByType(
-                hasSectionFormList,
-                "datetime",
-            );
-
-            if (dateTimeRequireChk && dateTimeRequireChk.require) {
-                if (!formDate || formTime == "base") {
-                    alert("날짜 및 시간을 입력 해 주세요.");
-                    return;
-                }
-            }
-
-            const memoFormArr = hasSectionFormList.filter(
-                (item) => item.type === "memo",
-            );
-            const memoValArr = memos.filter(Boolean);
-
-            for (let i = 0; i < memoFormArr.length; i++) {
-                const memoForm = memoFormArr[i];
-                const memoVal = memoValArr[i];
-                if (memoForm.require) {
-                    if (!memoVal) {
-                        alert("필수 메모 항목을 입력 해 주세요!");
-                        return;
-                    }
-                }
-            }
-
-            formVal = {
-                siteName: siteName,
-                name: customerName,
-                phone: customerPhone,
-                date: formDate,
-                time: formTime,
-            };
-
-            for (let i = 0; i < memoValArr.length; i++) {
-                const memo = memoValArr[i];
-                const num = i + 1;
-                formVal[`memo_${num}_question`] = memoFormArr[i].word;
-                formVal[`memo_${num}_answer`] = memo;
-            }
-        }
-
-        if (!inviteChk && siteData.ld_personal_info_view == "on") {
-            alert("개인정보 보호동의에 체크해주셔야 합니다.");
-            return;
-        }
-
-        if (!validatePhoneNumber(customerPhone)) {
-            alert("정상적인 휴대폰 번호만 가능합니다.");
-            return false;
+            formVal["siteName"] = siteName;
         }
 
         try {
@@ -210,15 +220,14 @@
             );
 
             if (res.status == 200) {
-                customerName = "";
-                customerPhone = "";
-                phone1 = "010";
-                phone2 = "";
-                phone3 = "";
-                memos = [];
-                formDate = moment().format("YYYY-MM-DD");
-                formTime = "base";
-                inviteChk = false;
+                $customerName = "";
+                $customerPhone = "";
+                $phone1 = "010";
+                $phone2 = "";
+                $phone3 = "";
+                $formDate = moment().format("YYYY-MM-DD");
+                $formTime = "base";
+                $inviteChk = false;
             }
 
             window.location.href = "/thankyou?return=true";
@@ -244,6 +253,23 @@
 
             y = moveEle.getBoundingClientRect().top + window.pageYOffset - 150;
             window.scrollTo({ top: y, behavior: "smooth" });
+        }
+    }
+
+    // 폼 만들어주기!! (폼을 만들어서 업데이트 시에 적용)
+    function focusAct(e) {
+        if (!isSameArrayKeys($getFormList, e)) {
+            $getFormList = e;
+            $formObj = Object.fromEntries(e.map((item) => [item.type, ""]));
+
+            $customerName = "";
+            $customerPhone = "";
+            $phone1 = "010";
+            $phone2 = "";
+            $phone3 = "";
+            $formDate = moment().format("YYYY-MM-DD");
+            $formTime = "base";
+            $inviteChk = false;
         }
     }
 </script>
@@ -382,33 +408,35 @@
                     {#each bottomFixFormData.formList as form, idx}
                         {#if form.type == "name"}
                             <NameInput
-                                bind:val={customerName}
+                                bind:val={$customerName}
                                 require={form.require}
+                                form={bottomFixFormData.formList}
+                                {focusAct}
                             />
                         {:else if form.type == "phone"}
                             <PhoneInput
-                                bind:val1={phone1}
-                                bind:val2={phone2}
-                                bind:val3={phone3}
+                                bind:val1={$phone1}
+                                bind:val2={$phone2}
+                                bind:val3={$phone3}
                                 require={form.require}
                             />
                         {:else if form.type == "date"}
                             <DateInput
                                 word={form.word}
-                                bind:setDate={formDate}
+                                bind:setDate={$formDate}
                                 require={form.require}
                             />
                         {:else if form.type == "datetime"}
                             <DateTimeInput
                                 word={form.word}
-                                bind:setDate={formDate}
-                                bind:setTime={formTime}
+                                bind:setDate={$formDate}
+                                bind:setTime={$formTime}
                                 require={form.require}
                             />
                         {:else if form.type == "memo"}
                             <MemoInput
+                                bind:val={$formObj[`${form.type}`]}
                                 word={form.word}
-                                bind:val={memos[idx]}
                                 require={form.require}
                             />
                         {/if}
@@ -421,7 +449,7 @@
                             <input
                                 type="checkbox"
                                 class="checkbox checkbox-sm mr-1"
-                                bind:checked={inviteChk}
+                                bind:checked={$inviteChk}
                             />
                             <span>개인정보 보호동의</span>
                         </label>

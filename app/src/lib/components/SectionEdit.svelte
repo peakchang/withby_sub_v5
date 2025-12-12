@@ -35,6 +35,7 @@
     let memoFormWord = $state("");
     let reserveFormWord = $state("");
     let formAgreeAddWord = $state("");
+    let memoAddCount = $state(0);
 
     // --------------------- 섹션 내 컨텐츠 관련 --------------------
     /*
@@ -280,7 +281,25 @@
             });
             return;
         } else if (tempForm == "memo") {
-            obj["type"] = tempForm;
+            console.log(contentObj["formList"]);
+
+            const memoItems = contentObj["formList"].filter((item) =>
+                item.type.includes("memo"),
+            );
+            console.log(memoItems);
+            if (memoItems.length > 0) {
+                const maxMemoNumber = memoItems
+                    .map((item) => parseInt(item.type.replace("memo", ""), 10)) // memo 뒤 숫자만 추출
+                    .filter((n) => !isNaN(n)) // 숫자인 경우만
+                    .reduce((max, n) => Math.max(max, n), 0);
+
+                memoAddCount = maxMemoNumber + 1;
+            } else {
+                memoAddCount = memoAddCount + 1;
+            }
+            console.log(memoAddCount);
+
+            obj["type"] = tempForm + memoAddCount;
             obj["word"] = memoFormWord;
             obj["require"] = requireBool;
         } else if (tempForm == "date" || tempForm == "datetime") {
@@ -331,7 +350,8 @@
             );
         } else {
             index = contentObj["formList"].findIndex(
-                (item) => item.type === tempForm && item.word === memoFormWord,
+                (item) =>
+                    item.type.includes(tempForm) && item.word === memoFormWord,
             );
         }
 
@@ -1402,7 +1422,10 @@
                                 <div class="mt-8 max-w-xl mx-auto">
                                     {#each contentObj["formList"] as val}
                                         {#if val.type == "name"}
-                                            <NameInput require={val.require} />
+                                            <NameInput
+                                                require={val.require}
+                                                focusAct={() => {}}
+                                            />
                                             <div class="my-2"></div>
                                         {:else if val.type == "phone"}
                                             <PhoneInput require={val.require} />
