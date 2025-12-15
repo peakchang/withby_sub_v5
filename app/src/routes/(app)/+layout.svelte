@@ -88,6 +88,9 @@
                         }
                     }
                 }
+
+                console.log(bottomFixFormData);
+                
             }
         }
     });
