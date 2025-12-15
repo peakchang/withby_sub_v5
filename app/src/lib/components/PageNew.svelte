@@ -523,7 +523,7 @@
                                 {/each}
                             </div>
 
-                            {#if content.formAgree || content.formAgree == "use"}
+                            {#if !content.formAgree || content.formAgree == "use"}
                                 <div
                                     class="flex justify-between items-center my-5"
                                 >

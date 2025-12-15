@@ -449,7 +449,7 @@
                     {/each}
                 </div>
 
-                {#if bottomFixFormData.formAgree || bottomFixFormData.formAgree == "use"}
+                {#if !bottomFixFormData.formAgree || bottomFixFormData.formAgree == "use"}
                     <div class="flex justify-between items-center my-5">
                         <div>
                             <label>
