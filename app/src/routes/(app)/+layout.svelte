@@ -88,9 +88,9 @@
                         }
                     }
                 }
+                console.log("bottomFixFormData!!!!!!!!!!!");
 
                 console.log(bottomFixFormData);
-                
             }
         }
     });
