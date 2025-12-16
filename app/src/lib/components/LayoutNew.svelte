@@ -42,8 +42,6 @@
             if (siteData.ld_json_menus) {
                 menuData = JSON.parse(siteData.ld_json_menus);
             }
-
-            
         } catch (error) {
             console.error("JSON 파싱 오류:", error);
         }
@@ -88,6 +86,12 @@
 </script>
 
 <svelte:window bind:scrollY={y} />
+
+<svelte:head>
+    {#if siteData.ld_add_scripts}
+        {@html siteData.ld_add_scripts}
+    {/if}
+</svelte:head>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
