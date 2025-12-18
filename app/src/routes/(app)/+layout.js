@@ -74,7 +74,7 @@ export const load = async ({ fetch, url }) => {
                 mainJson[0].contentList.find(item => item.imgList?.length)?.imgList[0].url;
         }
         // const seoMainImg = mainJson ? mainJson[0]['backgroundImg'].split(',')[0] : subView.ld_card_image
-        const seoMainImg = subView.ld_card_image ? subView.ld_card_image : ""
+        // const seoMainImg = subView.ld_card_image ? subView.ld_card_image : ""
         if (mainJson.length > 0) {
             seoValue["og_image"] = setImg(ogImage)
             seoValue["image"] = setImg(seoMainImg);
