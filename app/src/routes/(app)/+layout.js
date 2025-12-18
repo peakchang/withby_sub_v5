@@ -62,7 +62,6 @@ export const load = async ({ fetch, url }) => {
         const urlHost = url.host.split('.').slice(1).join('.');
         // const ogImage = subView.ld_card_image ? subView.ld_card_image : mainJson[0]['backgroundImg'].split(',')[0]
         // const ogImage = subView.ld_card_image ? subView.ld_card_image : ""
-
         let ogImage = ""
         let seoMainImg = ""
         if (subView.ld_card_image) {
@@ -74,15 +73,12 @@ export const load = async ({ fetch, url }) => {
             seoMainImg =
                 mainJson[0].contentList.find(item => item.imgList?.length)?.imgList[0].url;
         }
-
         // const seoMainImg = mainJson ? mainJson[0]['backgroundImg'].split(',')[0] : subView.ld_card_image
         const seoMainImg = subView.ld_card_image ? subView.ld_card_image : ""
-
         if (mainJson.length > 0) {
             seoValue["og_image"] = setImg(ogImage)
             seoValue["image"] = setImg(seoMainImg);
         }
-
     } else {
         seoValue["image"] = `${url.protocol}//${url.host.split('.')[1]}${subView['ld_main_img'] ? subView['ld_main_img'].split(',')[0] : ""}`;
     }
