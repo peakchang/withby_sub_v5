@@ -29,6 +29,8 @@
 
     import moment from "moment-timezone";
 
+    import SeoMeta from "$lib/components/SeoMeta.svelte";
+
     import { back_api, back_api_origin } from "$lib/const";
 
     import {
@@ -279,6 +281,10 @@
         }
     }
 </script>
+
+<svelte:head>
+    <SeoMeta seoValue={data.seoValue}></SeoMeta>
+</svelte:head>
 
 <!-- 공통!! (팝업) -->
 <!-- svelte-ignore a11y_consider_explicit_label -->
