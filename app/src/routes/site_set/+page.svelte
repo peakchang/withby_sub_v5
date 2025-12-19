@@ -972,7 +972,7 @@
                                                 <button
                                                     class="btn btn-soft btn-success btn-xs"
                                                     on:click={(e) => {
-                                                        e.target.parentNode.parentNode.firstChild.classList.remove(
+                                                        e.target.parentNode.parentNode.parentNode.firstChild.classList.remove(
                                                             "hidden",
                                                         );
                                                     }}
