@@ -23,14 +23,58 @@
     let elementsToObserve;
     let x = $state(0);
 
-    onMount(() => {
+    onMount(async () => {
         allSiteData = data.subView;
         if (allSiteData["ld_view_type"] == "old") {
         } else {
+        }
+
+        const nowPage = data.nowPage;
+        // 구버전 코드
+        if (allSiteData.ld_view_type == "old") {
+            if (allSiteData[`ld_pg${data.index}`]) {
+                imgList = allSiteData[`ld_pg${data.index}`].split(",");
+            } else {
+                imgList = [];
+            }
+        } else {
+            // 신버전 코드
+            try {
+                const getmenuData = JSON.parse(allSiteData.ld_json_menus);
+                menuData = getmenuData.menus.find(
+                    (item) => item.link === nowPage,
+                );
+
+                if (menuData.imgArr && menuData.imgArr.length > 0) {
+                    imgArr = menuData.imgArr.map((e) => {
+                        let res = "";
+                        if (e.includes("youtube")) {
+                            res = generateYouTubeEmbed(e);
+                        } else {
+                            res = e;
+                        }
+
+                        return res;
+                    });
+                }
+                imgArr.map((img) => {
+                    console.log(setImg(img));
+                });
+
+                await Promise.all(imgArr.map((url) => loadImage(url)));
+            } catch (error) {
+                console.error("JSON 파싱 오류:", error.message);
+            }
+
             if (browser) {
                 elementsToObserve =
                     document.querySelectorAll(".observe-fade-up");
             }
+
+            console.log("여기잖아 ㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠㅠ");
+
+            console.log(elementsToObserve);
+
             observer = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
@@ -57,53 +101,21 @@
                 }
             });
         }
-
-        const nowPage = data.nowPage;
-        // 구버전 코드
-        if (allSiteData.ld_view_type == "old") {
-            if (allSiteData[`ld_pg${data.index}`]) {
-                imgList = allSiteData[`ld_pg${data.index}`].split(",");
-            } else {
-                imgList = [];
-            }
-        } else {
-            // 신버전 코드
-            try {
-                const getmenuData = JSON.parse(allSiteData.ld_json_menus);
-                menuData = getmenuData.menus.find(
-                    (item) => item.link === nowPage,
-                );
-
-                console.log(menuData);
-
-                if (menuData.imgArr && menuData.imgArr.length > 0) {
-                    imgArr = menuData.imgArr.map((e) => {
-                        let res = "";
-                        if (e.includes("youtube")) {
-                            res = generateYouTubeEmbed(e);
-                        } else {
-                            res = e;
-                        }
-
-                        return res;
-                    });
-                }
-
-                console.log(imgArr);
-
-                imgArr.map((img) => {
-                    console.log(setImg(img));
-                });
-            } catch (error) {
-                console.error("JSON 파싱 오류:", error);
-            }
-        }
     });
 
     // $: x, set_x();
     // function set_x() {
     //     // setEmodelRatio();
     // }
+
+    function loadImage(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = url;
+        });
+    }
 
     function changTab() {
         // 일단 tab-active 클래스 다 없애기
@@ -252,6 +264,7 @@
                     class:observe-fade-up={menuData.effect == "on"}
                     data-delay="100"
                 >
+                    {menuData.effect}
                     {@html img}
                 </div>
             {:else}
@@ -270,15 +283,10 @@
 
 <style>
     /* 신버전 CSS */
-
-    /*
     .observe-hidden {
         opacity: 0;
-        transform: translateY(40px); 
+        transform: translateY(40px); /* 초기 위치를 아래로 10px 이동 */
     }
-    */
-    /* 초기 위치를 아래로 10px 이동 */
-
     .observe-fade-up {
         transition:
             opacity 0.8s ease-out,
@@ -289,4 +297,5 @@
         opacity: 1;
         transform: translateY(0);
     }
+
 </style>

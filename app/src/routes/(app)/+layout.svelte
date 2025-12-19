@@ -58,8 +58,6 @@
 
     // 방문 기록은 공통으로 나오게 하기!!
     onMount(async () => {
-        console.log(siteData);
-
         const getVisitedCookie = Cookies.get("topby_visited");
         const referrer = document.referrer;
         if (!getVisitedCookie) {
@@ -86,13 +84,9 @@
                             mdata.contentList[j]["fixedBottom"] == "fixed"
                         ) {
                             bottomFixFormData = mdata.contentList[j];
-                            console.log(bottomFixFormData);
                         }
                     }
                 }
-                console.log("bottomFixFormData!!!!!!!!!!!");
-
-                console.log(bottomFixFormData);
             }
         }
     });

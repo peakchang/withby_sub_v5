@@ -83,8 +83,6 @@ export const load = async ({ fetch, url }) => {
         seoValue["image"] = `${url.protocol}//${url.host.split('.')[1]}${subView['ld_main_img'] ? subView['ld_main_img'].split(',')[0] : ""}`;
     }
 
-    console.log(seoValue);
-
 
     return { subView, seoValue }
 }
