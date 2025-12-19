@@ -162,7 +162,7 @@
                     {#each menuData.menus as menu}
                         <a
                             href="/{menu.link}"
-                            class=" dark:text-white"
+                            class=" dark:text-white text-sm md:text-base"
                             style="color: black !important;"
                         >
                             <li
