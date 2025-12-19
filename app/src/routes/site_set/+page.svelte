@@ -386,6 +386,36 @@
             console.log("더이상 이동 불가 ㅠ");
         }
     }
+
+    function sortMenu() {
+        const index = Number(this.value);
+        const direct = this.dataset.direct;
+        console.log(index);
+        console.log(direct);
+        console.log(menuObj["menus"]);
+
+        if (index == 0 && direct == "up") {
+            toast.set({
+                show: true,
+                text: `순서 변경이 불가합니다.`,
+            });
+        } else if (index == menuObj["menus"].length - 1 && direct == "down") {
+            toast.set({
+                show: true,
+                text: `순서 변경이 불가합니다.`,
+            });
+        } else if (direct == "up") {
+            [menuObj["menus"][index - 1], menuObj["menus"][index]] = [
+                menuObj["menus"][index],
+                menuObj["menus"][index - 1],
+            ];
+        } else {
+            [menuObj["menus"][index + 1], menuObj["menus"][index]] = [
+                menuObj["menus"][index],
+                menuObj["menus"][index + 1],
+            ];
+        }
+    }
 </script>
 
 <!-- svelte-ignore event_directive_deprecated -->
@@ -752,7 +782,7 @@
                         <button
                             class="text-blue-500"
                             value={idx}
-                            data-direct="up"
+                            data-direct="down"
                             on:click={sortSection}
                         >
                             <i
@@ -834,11 +864,7 @@
                                     <button
                                         class="btn btn-soft btn-secondary btn-xs"
                                         on:click={() => {
-                                            const tempArr = [
-                                                ...menuObj["menus"],
-                                            ];
-                                            tempArr.splice(idx, 1);
-                                            menuObj["menus"] = tempArr;
+                                            menuObj["menus"].splice(idx, 1);
                                             eModelBool = false;
                                         }}
                                     >
@@ -894,7 +920,7 @@
                                 <td class="w-[100px] in-td text-center">
                                     <div class="relative">
                                         <div
-                                            class=" absolute top-0 left-0 w-full h-full bg-white hidden z-50 text-xs"
+                                            class="absolute top-0 left-0 w-full h-full bg-white hidden z-50 text-xs"
                                         >
                                             <input
                                                 type="text"
@@ -930,28 +956,57 @@
 
                                         <div class="p-2">
                                             <div>{menu.name}</div>
-                                            <button
-                                                class="btn btn-soft btn-secondary btn-xs"
-                                                on:click={() => {
-                                                    // 삭제 부분! 배열에서 해당 부분 삭제!!
-                                                    menuObj["menus"].splice(
-                                                        idx,
-                                                        1,
-                                                    );
-                                                }}
-                                            >
-                                                삭제
-                                            </button>
-                                            <button
-                                                class="btn btn-soft btn-success btn-xs"
-                                                on:click={(e) => {
-                                                    e.target.parentNode.parentNode.firstChild.classList.remove(
-                                                        "hidden",
-                                                    );
-                                                }}
-                                            >
-                                                수정
-                                            </button>
+                                            <div>
+                                                <button
+                                                    class="btn btn-soft btn-secondary btn-xs"
+                                                    on:click={() => {
+                                                        // 삭제 부분! 배열에서 해당 부분 삭제!!
+                                                        menuObj["menus"].splice(
+                                                            idx,
+                                                            1,
+                                                        );
+                                                    }}
+                                                >
+                                                    삭제
+                                                </button>
+                                                <button
+                                                    class="btn btn-soft btn-success btn-xs"
+                                                    on:click={(e) => {
+                                                        e.target.parentNode.parentNode.firstChild.classList.remove(
+                                                            "hidden",
+                                                        );
+                                                    }}
+                                                >
+                                                    수정
+                                                </button>
+                                            </div>
+
+                                            <!-- svelte-ignore a11y_consider_explicit_label -->
+                                            <div>
+                                                <button
+                                                    class="text-blue-500"
+                                                    value={idx}
+                                                    data-direct="up"
+                                                    on:click={sortMenu}
+                                                >
+                                                    <i
+                                                        class="fa fa-chevron-circle-up"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </button>
+
+                                                <button
+                                                    class="text-blue-500"
+                                                    value={idx}
+                                                    data-direct="down"
+                                                    on:click={sortMenu}
+                                                >
+                                                    <i
+                                                        class="fa fa-chevron-circle-down"
+                                                        aria-hidden="true"
+                                                    ></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
